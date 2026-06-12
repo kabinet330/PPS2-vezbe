@@ -1,0 +1,331 @@
+<!doctype html>
+<!-- ====================================================================
+     ŠABLON ZA NOVU VEŽBU
+     1. Kopirati ovaj fajl kao vezba-XX.html
+     2. Zameniti <title>, naslovni slajd i sadržaj
+     3. Dodati karticu na index.html (otkomentarisati "soon" red)
+     Sadrži: dizajn tokene, sve komponente (kartice, metrike, tabele,
+     formule), drawChart() helper za SVG dijagrame i navigaciju.
+     ==================================================================== -->
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PPS2 · Vežba XX — Naslov</title>
+<style>
+  :root {
+    --ivory:   #FAF9F5;
+    --slate:   #141413;
+    --clay:    #D97757;
+    --oat:     #E3DACC;
+    --olive:   #788C5D;
+    --gray-150:#F0EEE6;
+    --gray-300:#D1CFC5;
+    --gray-500:#87867F;
+    --gray-700:#3D3D3A;
+    --ulaz:    #3E6B9E;
+    --izlaz:   #D9962E;
+    --red:     #C04B4B;
+    --serif: ui-serif, Georgia, "Times New Roman", serif;
+    --sans:  system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono:  ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans); background: var(--ivory); color: var(--slate);
+    -webkit-font-smoothing: antialiased; scroll-snap-type: y mandatory; overflow-x: hidden;
+  }
+
+  /* slajd */
+  .slide {
+    width: 100vw; min-height: 100vh;
+    scroll-snap-align: start; scroll-snap-stop: always;
+    display: flex; align-items: center; justify-content: center;
+    padding: 7vh 5vw;
+  }
+  .slide-inner { width: 100%; max-width: 800px; }
+  .slide.wide .slide-inner { max-width: 960px; }   /* za tabele i dijagrame */
+  .slide.invert { background: var(--slate); color: var(--ivory); }
+
+  /* tipografija */
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--gray-500); margin-bottom: 24px;
+  }
+  .invert .eyebrow { color: var(--gray-300); }
+  h1 { font-family: var(--serif); font-weight: 500; font-size: clamp(38px, 5.5vw, 60px); line-height: 1.08; letter-spacing: -0.01em; margin-bottom: 20px; }
+  h2 { font-family: var(--serif); font-weight: 500; font-size: clamp(26px, 3.6vw, 38px); line-height: 1.15; margin-bottom: 30px; }
+  .subtitle { font-size: 17px; line-height: 1.6; color: var(--gray-700); max-width: 560px; }
+  .invert .subtitle { color: var(--gray-300); }
+  .mono { font-family: var(--mono); }
+  .byline { margin-top: 48px; font-family: var(--mono); font-size: 12px; color: var(--gray-500); display: flex; gap: 24px; flex-wrap: wrap; }
+  .ornament { display: block; margin: 0 0 36px 0; }
+
+  /* lista sa crticama */
+  .next-list { list-style: none; display: flex; flex-direction: column; gap: 20px; }
+  .next-list li { font-family: var(--serif); font-size: 21px; line-height: 1.45; padding-left: 36px; position: relative; }
+  .next-list li::before { content: ""; position: absolute; left: 0; top: 0.55em; width: 18px; height: 1.5px; background: var(--clay); }
+  .next-list .note { font-family: var(--sans); font-size: 14px; color: var(--gray-700); margin-top: 4px; }
+  .footnote { margin-top: 44px; font-family: var(--mono); font-size: 11px; color: var(--gray-500); line-height: 1.6; }
+
+  /* kartice */
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .cards.three { grid-template-columns: repeat(3, 1fr); }
+  .card { border: 1px solid var(--gray-300); border-radius: 14px; padding: 24px 26px; background: #fff; }
+  .card .tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-500); margin-bottom: 12px; }
+  .card h3 { font-family: var(--serif); font-size: 21px; font-weight: 500; margin-bottom: 10px; }
+  .card p { font-size: 14px; line-height: 1.6; color: var(--gray-700); }
+  .card.accent { border-color: var(--clay); background: rgba(217, 119, 87, 0.05); }
+
+  /* metrike */
+  .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px 40px; margin-bottom: 8px; }
+  .metric-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-500); margin-bottom: 10px; }
+  .metric-value { font-family: var(--serif); font-size: 42px; font-weight: 500; line-height: 1; }
+  .metric-value .unit { font-size: 19px; color: var(--gray-700); }
+  .metric-sub { font-family: var(--mono); font-size: 12px; color: var(--gray-500); margin-top: 8px; }
+
+  /* tabele */
+  .tblwrap { overflow-x: auto; }
+  table.tbl { border-collapse: collapse; font-family: var(--mono); font-size: 13px; width: 100%; }
+  .tbl th, .tbl td { padding: 5px 9px; text-align: center; border-bottom: 1px solid var(--gray-150); white-space: nowrap; }
+  .tbl th { background: var(--gray-150); font-weight: 600; font-size: 12px; }
+  .tbl td:first-child, .tbl th:first-child { text-align: left; }
+  .tbl tr.hl td, .tbl td.hl { background: rgba(192, 75, 75, 0.10); color: var(--red); font-weight: 700; }
+  .tbl-caption { font-family: var(--mono); font-size: 11px; color: var(--gray-500); margin-top: 12px; line-height: 1.6; }
+  .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: start; }
+
+  /* formule */
+  .eq { font-family: var(--serif); font-size: 21px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; line-height: 1.3; }
+  .eq i { font-style: italic; }
+  .eq .res { color: var(--clay); font-weight: 600; }
+  .frac { display: inline-flex; flex-direction: column; align-items: center; text-align: center; vertical-align: middle; font-size: 0.92em; }
+  .frac > span:first-child { border-bottom: 1.3px solid currentColor; padding: 0 7px 3px; }
+  .frac > span:last-child { padding: 3px 7px 0; }
+  .sum { display: inline-flex; flex-direction: column; align-items: center; line-height: 1; }
+  .sum .lim { font-size: 10px; font-family: var(--mono); color: var(--gray-500); }
+  .sum .sig { font-size: 25px; }
+  .eq-meaning { font-size: 13.5px; color: var(--gray-700); line-height: 1.55; margin-top: 10px; }
+  .fstack { display: flex; flex-direction: column; gap: 22px; }
+
+  /* dijagrami */
+  .chart { width: 100%; height: auto; display: block; }
+  svg .tick  { font-family: var(--mono); font-size: 11px; fill: var(--gray-500); }
+  svg .axlbl { font-family: var(--mono); font-size: 12px; fill: var(--gray-700); }
+  svg .ann   { font-family: var(--mono); font-size: 12.5px; font-weight: 600; }
+  .chart-note { font-family: var(--mono); font-size: 11px; color: var(--gray-500); margin-top: 8px; }
+
+  /* zadatak (invert) */
+  .task-card { border: 1.5px solid var(--clay); border-radius: 14px; padding: 28px 30px; background: rgba(217, 119, 87, 0.06); margin-bottom: 18px; }
+  .task-card h3 { font-family: var(--serif); font-size: 21px; font-weight: 500; margin-bottom: 10px; }
+  .task-card ul { list-style: none; }
+  .task-card li { font-size: 14.5px; line-height: 1.7; color: var(--gray-300); padding-left: 20px; position: relative; }
+  .task-card li::before { content: "—"; position: absolute; left: 0; color: var(--clay); }
+  .chips { display: flex; gap: 12px; margin-top: 26px; flex-wrap: wrap; }
+  .chip { font-family: var(--mono); font-size: 12px; padding: 9px 16px; border-radius: 999px; border: 1px solid var(--gray-700); color: var(--ivory); }
+  .chip.lean { border-color: var(--clay); color: var(--clay); }
+
+  /* navigacija */
+  #counter { position: fixed; bottom: 20px; right: 26px; font-family: var(--mono); font-size: 12px; color: var(--gray-500); user-select: none; z-index: 10; }
+  .home { position: fixed; top: 18px; left: 24px; font-family: var(--mono); font-size: 12px; color: var(--gray-500); text-decoration: none; z-index: 10; }
+  .home:hover { color: var(--clay); }
+
+  @media (max-width: 720px) {
+    .cards, .cards.three, .twocol { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .slide { padding: 6vh 5vw; }
+  }
+  @media print {
+    body { scroll-snap-type: none; }
+    .slide { min-height: 96vh; page-break-after: always; }
+    #counter, .home { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<a class="home" href="index.html">&larr; Sve ve&zcaron;be</a>
+
+<!-- svg defs: strelice za anotacije dijagrama -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#C04B4B"/>
+    </marker>
+  </defs>
+</svg>
+
+<!-- ============================================================
+     1 · Naslovni slajd
+     ============================================================ -->
+<section class="slide">
+  <div class="slide-inner">
+    <svg class="ornament" width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">
+      <circle cx="28" cy="28" r="22" fill="none" stroke="#D1CFC5" stroke-width="1.5"/>
+      <path d="M16 36 L24 22 L32 30 L40 18" stroke="#D97757" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="40" cy="18" r="3" fill="#141413"/>
+    </svg>
+    <div class="eyebrow">Planiranje prostora i saobra&cacute;aja 2 &middot; Ve&zcaron;ba XX</div>
+    <h1>Naslov ve&zcaron;be</h1>
+    <p class="subtitle">Kratak opis — &scaron;ta se radi i za&scaron;to.</p>
+    <div class="byline">
+      <span>2 &times; 45 min</span>
+      <span>predavanje + samostalni rad</span>
+      <span>navigacija: &larr; &rarr; ili skrol</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     2 · Običan slajd sa listom
+     ============================================================ -->
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">Sekcija &middot; podsekcija</div>
+    <h2>Naslov slajda</h2>
+    <ul class="next-list">
+      <li>Prva stavka.
+        <div class="note">Obja&scaron;njenje sitnijim fontom.</div>
+      </li>
+      <li>Druga stavka.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================================
+     3 · Tamni divider (početak novog dela)
+     ============================================================ -->
+<section class="slide invert">
+  <div class="slide-inner">
+    <div class="eyebrow">Deo 1</div>
+    <h1>Naslov dela</h1>
+    <p class="subtitle">Uvod u deo.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     4 · Slajd sa dijagramom (klasa "wide" za širi sadržaj)
+     ============================================================ -->
+<section class="slide wide">
+  <div class="slide-inner">
+    <div class="eyebrow">Sekcija &middot; dijagram</div>
+    <h2>Naslov dijagrama</h2>
+    <svg id="chDemo" class="chart"></svg>
+    <div class="chart-note">Napomena ispod dijagrama.</div>
+  </div>
+</section>
+
+<div id="counter">1 / 4</div>
+
+<script>
+/* ====================================================================
+   drawChart(id, opcije) — crtanje SVG dijagrama
+   opcije: x0,x1,y0,y1 (opseg), xt/yt (podeoci), xl/yl (nazivi osa),
+   series: [{x:[],y:[],c:boja}] linija ili {step:true,edges:[],vals:[]} stepenasto,
+   ann: [{t:'h',y}|{t:'v',x,y0,y1}|{t:'arrow',x0,y0,x1,y1,both}|{t:'txt',x,y,s}],
+   legend: [{c,s}], lx/ly pozicija legende
+   ==================================================================== */
+(function () {
+  const NS = 'http://www.w3.org/2000/svg';
+  function E(tag, attrs, parent) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  window.drawChart = function (id, o) {
+    const svg = document.getElementById(id);
+    if (!svg) return;
+    const W = o.w || 900, H = o.h || 400, L = o.ml || 62, R = 16, T = 18, B = 48;
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    const sx = v => L + (v - o.x0) / (o.x1 - o.x0) * (W - L - R);
+    const sy = v => H - B - (v - o.y0) / (o.y1 - o.y0) * (H - T - B);
+    (o.yt || []).forEach(v => {
+      E('line', { x1: L, y1: sy(v), x2: W - R, y2: sy(v), stroke: '#E9E6DC', 'stroke-width': 1 }, svg);
+      E('text', { x: L - 9, y: sy(v) + 4, 'text-anchor': 'end', class: 'tick' }, svg).textContent = v;
+    });
+    (o.xt || []).forEach(v => {
+      E('line', { x1: sx(v), y1: H - B, x2: sx(v), y2: H - B + 5, stroke: '#87867F' }, svg);
+      E('text', { x: sx(v), y: H - B + 20, 'text-anchor': 'middle', class: 'tick' }, svg).textContent = v;
+    });
+    E('line', { x1: L, y1: H - B, x2: W - R, y2: H - B, stroke: '#141413', 'stroke-width': 1.2 }, svg);
+    E('line', { x1: L, y1: T, x2: L, y2: H - B, stroke: '#141413', 'stroke-width': 1.2 }, svg);
+    if (o.xl) E('text', { x: (L + W - R) / 2, y: H - 8, 'text-anchor': 'middle', class: 'axlbl' }, svg).textContent = o.xl;
+    if (o.yl) {
+      const ym = (T + H - B) / 2;
+      E('text', { x: 15, y: ym, 'text-anchor': 'middle', class: 'axlbl', transform: 'rotate(-90 15 ' + ym + ')' }, svg).textContent = o.yl;
+    }
+    (o.series || []).forEach(s => {
+      let d = '';
+      if (s.step) {
+        d = 'M' + sx(s.edges[0]) + ' ' + sy(s.vals[0]);
+        for (let k = 0; k < s.vals.length; k++) {
+          d += ' H' + sx(s.edges[k + 1]);
+          if (k < s.vals.length - 1) d += ' V' + sy(s.vals[k + 1]);
+        }
+      } else {
+        d = s.x.map((xv, k) => (k ? 'L' : 'M') + sx(xv) + ' ' + sy(s.y[k])).join(' ');
+      }
+      E('path', { d: d, fill: 'none', stroke: s.c, 'stroke-width': s.w || 2.6, 'stroke-linejoin': 'round', 'stroke-linecap': 'round', 'stroke-dasharray': s.dash || 'none' }, svg);
+    });
+    (o.ann || []).forEach(a => {
+      if (a.t === 'h') E('line', { x1: L, y1: sy(a.y), x2: W - R, y2: sy(a.y), stroke: a.c || '#788C5D', 'stroke-width': 1.7, 'stroke-dasharray': '7 5' }, svg);
+      if (a.t === 'v') E('line', { x1: sx(a.x), y1: sy(a.y0), x2: sx(a.x), y2: sy(a.y1), stroke: a.c || '#C04B4B', 'stroke-width': 1.4, 'stroke-dasharray': '5 4' }, svg);
+      if (a.t === 'arrow') {
+        const ln = E('line', { x1: sx(a.x0), y1: sy(a.y0), x2: sx(a.x1), y2: sy(a.y1), stroke: a.c || '#C04B4B', 'stroke-width': 1.8 }, svg);
+        ln.setAttribute('marker-end', 'url(#arr)');
+        if (a.both) ln.setAttribute('marker-start', 'url(#arr)');
+      }
+      if (a.t === 'txt') {
+        E('text', { x: sx(a.x) + (a.dx || 0), y: sy(a.y) + (a.dy || 0), class: 'ann', 'text-anchor': a.anchor || 'middle', fill: a.c || '#C04B4B' }, svg).textContent = a.s;
+      }
+    });
+    if (o.legend) {
+      const lx = o.lx != null ? o.lx : W - R - 175, ly = o.ly != null ? o.ly : T + 10;
+      o.legend.forEach((g, k) => {
+        E('line', { x1: lx, y1: ly + k * 21, x2: lx + 26, y2: ly + k * 21, stroke: g.c, 'stroke-width': 3.2 }, svg);
+        E('text', { x: lx + 34, y: ly + k * 21 + 4, class: 'tick', 'text-anchor': 'start', fill: '#3D3D3A' }, svg).textContent = g.s;
+      });
+    }
+  };
+})();
+
+/* primer dijagrama — obrisati u pravoj vežbi */
+drawChart('chDemo', {
+  x0: 0, x1: 10, y0: 0, y1: 100,
+  xt: [0, 2, 4, 6, 8, 10], yt: [0, 25, 50, 75, 100],
+  xl: 'x', yl: 'y',
+  series: [{ x: [0, 2, 4, 6, 8, 10], y: [10, 40, 80, 65, 90, 30], c: '#3E6B9E' }],
+  ann: [{ t: 'h', y: 52.5 }, { t: 'txt', x: 8, y: 95, s: 'max' }]
+});
+
+/* ====================================================================
+   Navigacija slajdovima
+   ==================================================================== */
+(function () {
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const counter = document.getElementById('counter');
+  let current = 0;
+  function go(i) {
+    current = Math.max(0, Math.min(slides.length - 1, i));
+    slides[current].scrollIntoView({ behavior: 'smooth' });
+  }
+  document.addEventListener('keydown', function (e) {
+    if (['ArrowRight', 'ArrowDown', ' ', 'PageDown'].includes(e.key)) { e.preventDefault(); go(current + 1); }
+    if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); go(current - 1); }
+    if (e.key === 'Home') { e.preventDefault(); go(0); }
+    if (e.key === 'End')  { e.preventDefault(); go(slides.length - 1); }
+  });
+  const obs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) {
+        current = slides.indexOf(en.target);
+        counter.textContent = (current + 1) + ' / ' + slides.length;
+      }
+    });
+  }, { threshold: 0.6 });
+  slides.forEach(s => obs.observe(s));
+})();
+</script>
+</body>
+</html>

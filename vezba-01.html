@@ -1,0 +1,1132 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PPS2 · Vežba 1 — Vremenska i prostorna akumulacija</title>
+<style>
+  /* ------------------------------------------------------------------
+     Dizajn tokeni (zajednički za sve vežbe — kopirati u nove fajlove)
+     ------------------------------------------------------------------ */
+  :root {
+    --ivory:   #FAF9F5;
+    --slate:   #141413;
+    --clay:    #D97757;
+    --oat:     #E3DACC;
+    --olive:   #788C5D;
+    --gray-150:#F0EEE6;
+    --gray-300:#D1CFC5;
+    --gray-500:#87867F;
+    --gray-700:#3D3D3A;
+    --ulaz:    #3E6B9E;   /* plava — ulaz  (kao u Excel dijagramima) */
+    --izlaz:   #D9962E;   /* žuta  — izlaz (kao u Excel dijagramima) */
+    --red:     #C04B4B;   /* anotacije Qmax, tsr, dsr */
+
+    --serif: ui-serif, Georgia, "Times New Roman", serif;
+    --sans:  system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono:  ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--ivory);
+    color: var(--slate);
+    -webkit-font-smoothing: antialiased;
+    scroll-snap-type: y mandatory;
+    overflow-x: hidden;
+  }
+
+  /* ------------------------------------------------------------------
+     Slajd
+     ------------------------------------------------------------------ */
+  .slide {
+    width: 100vw;
+    min-height: 100vh;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7vh 5vw;
+  }
+  .slide-inner { width: 100%; max-width: 800px; }
+  .slide.wide .slide-inner { max-width: 960px; }
+  .slide.invert { background: var(--slate); color: var(--ivory); }
+
+  /* ------------------------------------------------------------------
+     Tipografija
+     ------------------------------------------------------------------ */
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    margin-bottom: 24px;
+  }
+  .invert .eyebrow { color: var(--gray-300); }
+
+  h1 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(38px, 5.5vw, 60px);
+    line-height: 1.08;
+    letter-spacing: -0.01em;
+    margin-bottom: 20px;
+  }
+  h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(26px, 3.6vw, 38px);
+    line-height: 1.15;
+    margin-bottom: 30px;
+  }
+  .subtitle {
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--gray-700);
+    max-width: 560px;
+  }
+  .invert .subtitle { color: var(--gray-300); }
+  .mono { font-family: var(--mono); }
+
+  .byline {
+    margin-top: 48px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--gray-500);
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .ornament { display: block; margin: 0 0 36px 0; }
+
+  /* ------------------------------------------------------------------
+     Komponente
+     ------------------------------------------------------------------ */
+  .next-list { list-style: none; display: flex; flex-direction: column; gap: 20px; }
+  .next-list li {
+    font-family: var(--serif);
+    font-size: 21px;
+    line-height: 1.45;
+    padding-left: 36px;
+    position: relative;
+  }
+  .next-list li::before {
+    content: "";
+    position: absolute; left: 0; top: 0.55em;
+    width: 18px; height: 1.5px; background: var(--clay);
+  }
+  .next-list .note { font-family: var(--sans); font-size: 14px; color: var(--gray-700); margin-top: 4px; }
+
+  .footnote {
+    margin-top: 44px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gray-500);
+    line-height: 1.6;
+  }
+
+  /* kartice (pojmovi, formule) */
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .cards.three { grid-template-columns: repeat(3, 1fr); }
+  .card {
+    border: 1px solid var(--gray-300);
+    border-radius: 14px;
+    padding: 24px 26px;
+    background: #fff;
+  }
+  .card .tag {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--gray-500); margin-bottom: 12px;
+  }
+  .card h3 { font-family: var(--serif); font-size: 21px; font-weight: 500; margin-bottom: 10px; }
+  .card p { font-size: 14px; line-height: 1.6; color: var(--gray-700); }
+  .card.accent { border-color: var(--clay); background: rgba(217, 119, 87, 0.05); }
+
+  /* metrike */
+  .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px 40px; margin-bottom: 8px; }
+  .metric-label {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--gray-500); margin-bottom: 10px;
+  }
+  .metric-value { font-family: var(--serif); font-size: 42px; font-weight: 500; line-height: 1; }
+  .metric-value .unit { font-size: 19px; color: var(--gray-700); }
+  .metric-sub { font-family: var(--mono); font-size: 12px; color: var(--gray-500); margin-top: 8px; }
+
+  /* tabele */
+  .tblwrap { overflow-x: auto; }
+  table.tbl {
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 13px;
+    width: 100%;
+  }
+  .tbl th, .tbl td { padding: 5px 9px; text-align: center; border-bottom: 1px solid var(--gray-150); white-space: nowrap; }
+  .tbl th { background: var(--gray-150); font-weight: 600; font-size: 12px; }
+  .tbl td:first-child, .tbl th:first-child { text-align: left; }
+  .tbl tr.hl td, .tbl td.hl { background: rgba(192, 75, 75, 0.10); color: var(--red); font-weight: 700; }
+  .tbl-caption { font-family: var(--mono); font-size: 11px; color: var(--gray-500); margin-top: 12px; line-height: 1.6; }
+  .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: start; }
+
+  /* formule */
+  .eq {
+    font-family: var(--serif);
+    font-size: 21px;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    line-height: 1.3;
+  }
+  .eq i { font-style: italic; }
+  .eq .res { color: var(--clay); font-weight: 600; }
+  .frac { display: inline-flex; flex-direction: column; align-items: center; text-align: center; vertical-align: middle; font-size: 0.92em; }
+  .frac > span:first-child { border-bottom: 1.3px solid currentColor; padding: 0 7px 3px; }
+  .frac > span:last-child { padding: 3px 7px 0; }
+  .sum { display: inline-flex; flex-direction: column; align-items: center; line-height: 1; }
+  .sum .lim { font-size: 10px; font-family: var(--mono); color: var(--gray-500); }
+  .sum .sig { font-size: 25px; }
+  .eq-meaning { font-size: 13.5px; color: var(--gray-700); line-height: 1.55; margin-top: 10px; }
+  .fstack { display: flex; flex-direction: column; gap: 22px; }
+
+  /* dijagrami */
+  .chart { width: 100%; height: auto; display: block; }
+  svg .tick  { font-family: var(--mono); font-size: 11px; fill: var(--gray-500); }
+  svg .axlbl { font-family: var(--mono); font-size: 12px; fill: var(--gray-700); }
+  svg .ann   { font-family: var(--mono); font-size: 12.5px; font-weight: 600; }
+  .chart-note { font-family: var(--mono); font-size: 11px; color: var(--gray-500); margin-top: 8px; }
+
+  /* zadatak (invert slajd) */
+  .task-card {
+    border: 1.5px solid var(--clay);
+    border-radius: 14px;
+    padding: 28px 30px;
+    background: rgba(217, 119, 87, 0.06);
+    margin-bottom: 18px;
+  }
+  .task-card h3 { font-family: var(--serif); font-size: 21px; font-weight: 500; margin-bottom: 10px; }
+  .task-card ul { list-style: none; }
+  .task-card li { font-size: 14.5px; line-height: 1.7; color: var(--gray-300); padding-left: 20px; position: relative; }
+  .task-card li::before { content: "—"; position: absolute; left: 0; color: var(--clay); }
+  .chips { display: flex; gap: 12px; margin-top: 26px; flex-wrap: wrap; }
+  .chip {
+    font-family: var(--mono); font-size: 12px;
+    padding: 9px 16px; border-radius: 999px;
+    border: 1px solid var(--gray-700); color: var(--ivory);
+  }
+  .chip.lean { border-color: var(--clay); color: var(--clay); }
+
+  /* navigacija */
+  #counter {
+    position: fixed; bottom: 20px; right: 26px;
+    font-family: var(--mono); font-size: 12px; color: var(--gray-500);
+    user-select: none; z-index: 10;
+  }
+  .home {
+    position: fixed; top: 18px; left: 24px;
+    font-family: var(--mono); font-size: 12px;
+    color: var(--gray-500); text-decoration: none; z-index: 10;
+  }
+  .home:hover { color: var(--clay); }
+
+  @media (max-width: 720px) {
+    .cards, .cards.three, .twocol { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .slide { padding: 6vh 5vw; }
+  }
+
+  @media print {
+    body { scroll-snap-type: none; }
+    .slide { min-height: 96vh; page-break-after: always; }
+    #counter, .home { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<a class="home" href="index.html">&larr; Sve ve&zcaron;be</a>
+
+<!-- svg defs: strelice za anotacije -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#C04B4B"/>
+    </marker>
+  </defs>
+</svg>
+
+<!-- ============================================================
+     1 · Naslov
+     ============================================================ -->
+<section class="slide">
+  <div class="slide-inner">
+    <svg class="ornament" width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">
+      <circle cx="28" cy="28" r="22" fill="none" stroke="#D1CFC5" stroke-width="1.5"/>
+      <path d="M16 36 L24 22 L32 30 L40 18" stroke="#D97757" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="40" cy="18" r="3" fill="#141413"/>
+    </svg>
+    <div class="eyebrow">Planiranje prostora i saobra&cacute;aja 2 &middot; Ve&zcaron;ba 1</div>
+    <h1>Vremenska i prostorna akumulacija</h1>
+    <p class="subtitle">
+      Kako se iz brojanja ulaza i izlaza dobija slika optere&cacute;enja sistema —
+      gara&zcaron;e kroz vreme i linije javnog prevoza du&zcaron; trase.
+    </p>
+    <div class="byline">
+      <span>2 &times; 45 min</span>
+      <span>predavanje + samostalni rad</span>
+      <span>navigacija: &larr; &rarr; ili skrol</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     2 · Plan časa
+     ============================================================ -->
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">Plan &ccaron;asa</div>
+    <h2>&Scaron;ta radimo danas</h2>
+    <ul class="next-list">
+      <li>Pojam akumulacije — ulaz, izlaz i ono &scaron;to ostaje u sistemu.</li>
+      <li>Vremenska akumulacija — kompletan primer: gara&zcaron;a, 24 &ccaron;asa.</li>
+      <li>Prostorna akumulacija — kompletan primer: linija sa 12 stanica, oba smera.</li>
+      <li>Samostalni rad — Postavka 1 u Excel-u (drugi &ccaron;as).</li>
+    </ul>
+    <div class="footnote">
+      Ovaj fajl ostaje dostupan kao referenca — sve formule, tabele i dijagrami
+      iz primera su u njemu.
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     3 · Pojam akumulacije
+     ============================================================ -->
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">Osnovni pojam</div>
+    <h2>Akumulacija = ono &scaron;to je u&scaron;lo, a jo&scaron; nije iza&scaron;lo</h2>
+    <div class="eq" style="margin-bottom:28px">
+      <i>Q</i> = <i>U</i> &minus; <i>I</i>
+      <span style="font-family:var(--sans);font-size:14px;color:var(--gray-700);margin-left:14px">
+        kumulativni ulaz minus kumulativni izlaz
+      </span>
+    </div>
+    <div class="cards">
+      <div class="card">
+        <div class="tag">Vremenska &middot; Q(t)</div>
+        <h3>Koliko je vozila u gara&zcaron;i u datom trenutku?</h3>
+        <p>
+          Brojimo ulaske <i>u(t)</i> i izlaske <i>i(t)</i> po &ccaron;asovnim intervalima.
+          Akumulacija Q(t) je broj vozila koja su u objektu u &ccaron;asu <i>t</i>.
+          Slu&zcaron;i za dimenzionisanje kapaciteta gara&zcaron;e ili parkirali&scaron;ta.
+        </p>
+      </div>
+      <div class="card">
+        <div class="tag">Prostorna &middot; Q(x)</div>
+        <h3>Koliko je putnika u vozilu na datoj deonici?</h3>
+        <p>
+          Brojimo ulaske <i>u(x)</i> i izlaske <i>i(x)</i> po stanicama linije.
+          Akumulacija Q(x) je broj putnika u vozilu izme&dstrok;u dve stanice.
+          Slu&zcaron;i za odre&dstrok;ivanje merodavnog optere&cacute;enja linije.
+        </p>
+      </div>
+    </div>
+    <div class="footnote">Ista logika, dve ose: vreme t [h] ili put x [m].</div>
+  </div>
+</section>
+
+<!-- ============================================================
+     4 · Divider — Deo 1
+     ============================================================ -->
+<section class="slide invert">
+  <div class="slide-inner">
+    <div class="eyebrow">Deo 1</div>
+    <h1>Vremenska akumulacija</h1>
+    <p class="subtitle">
+      Gara&zcaron;a: tokom 24 &ccaron;asa u&scaron;lo je i iza&scaron;lo po 486 vozila.
+      Iz &ccaron;asovnih brojanja ulaza i izlaza ra&ccaron;unamo Q(t), Q<sub>max</sub>,
+      Q<sub>sr</sub>, N, t<sub>sr</sub> i koeficijent izmene &gamma;<sub>rt</sub>.
+    </p>
+  </div>
+</section>
+
+<!-- ============================================================
+     5 · Vremenska — formule
+     ============================================================ -->
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">Vremenska akumulacija &middot; postupak</div>
+    <h2>Tri kolone re&scaron;avaju sve</h2>
+    <div class="cards three">
+      <div class="card">
+        <div class="tag">Kumulativni ulaz</div>
+        <div class="eq"><i>U(t)</i> = <span class="sum"><span class="lim">t</span><span class="sig">&Sigma;</span><span class="lim">0</span></span> <i>u(t)</i></div>
+        <p class="eq-meaning">Sabiramo ulaske od po&ccaron;etka do &ccaron;asa <i>t</i>.</p>
+      </div>
+      <div class="card">
+        <div class="tag">Kumulativni izlaz</div>
+        <div class="eq"><i>I(t)</i> = <span class="sum"><span class="lim">t</span><span class="sig">&Sigma;</span><span class="lim">0</span></span> <i>i(t)</i></div>
+        <p class="eq-meaning">Sabiramo izlaske od po&ccaron;etka do &ccaron;asa <i>t</i>.</p>
+      </div>
+      <div class="card accent">
+        <div class="tag">Akumulacija</div>
+        <div class="eq"><i>Q(t)</i> = <i>U(t)</i> &minus; <i>I(t)</i></div>
+        <p class="eq-meaning">Vozila koja su u tom &ccaron;asu u gara&zcaron;i.</p>
+      </div>
+    </div>
+    <div class="fstack" style="margin-top:30px">
+      <div class="eq">
+        <i>Q<sub>max</sub></i> = max&thinsp;<i>Q(t)</i>
+        <span style="width:26px"></span>
+        <i>Q<sub>sr</sub></i> = <span class="frac"><span><i>Q<sub>u</sub></i></span><span><i>t<sub>n</sub></i> &minus; <i>t</i><sub>0</sub></span></span>
+        <span style="width:26px"></span>
+        <i>N</i> = <span class="frac"><span><i>Q<sub>max</sub></i></span><span><i>Q<sub>sr</sub></i></span></span>
+      </div>
+      <p class="eq-meaning">
+        Q<sub>u</sub> = &Sigma;Q(t) je ukupna akumulacija; N je koeficijent neravnomernosti —
+        koliko je vr&scaron;no stanje ve&cacute;e od prose&ccaron;nog.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     6 · Vremenska — proračunska tabela
+     ============================================================ -->
+<section class="slide wide">
+  <div class="slide-inner">
+    <div class="eyebrow">Vremenska akumulacija &middot; prora&ccaron;un</div>
+    <h2>Tabela: u, i &rarr; U, I &rarr; Q</h2>
+    <div class="twocol">
+      <div class="tblwrap">
+        <table class="tbl">
+          <tr><th>t [h]</th><th>u(t)</th><th>i(t)</th><th>U(t)</th><th>I(t)</th><th>Q(t)</th></tr>
+          <tr><td>0–1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+          <tr><td>1–2</td><td>2</td><td>1</td><td>2</td><td>1</td><td>1</td></tr>
+          <tr><td>2–3</td><td>1</td><td>0</td><td>3</td><td>1</td><td>2</td></tr>
+          <tr><td>3–4</td><td>1</td><td>1</td><td>4</td><td>2</td><td>2</td></tr>
+          <tr><td>4–5</td><td>3</td><td>1</td><td>7</td><td>3</td><td>4</td></tr>
+          <tr><td>5–6</td><td>17</td><td>1</td><td>24</td><td>4</td><td>20</td></tr>
+          <tr><td>6–7</td><td>59</td><td>3</td><td>83</td><td>7</td><td>76</td></tr>
+          <tr><td>7–8</td><td>87</td><td>5</td><td>170</td><td>12</td><td>158</td></tr>
+          <tr><td>8–9</td><td>40</td><td>3</td><td>210</td><td>15</td><td>195</td></tr>
+          <tr><td>9–10</td><td>45</td><td>6</td><td>255</td><td>21</td><td>234</td></tr>
+          <tr><td>10–11</td><td>46</td><td>10</td><td>301</td><td>31</td><td>270</td></tr>
+          <tr><td>11–12</td><td>35</td><td>12</td><td>336</td><td>43</td><td>293</td></tr>
+        </table>
+      </div>
+      <div class="tblwrap">
+        <table class="tbl">
+          <tr><th>t [h]</th><th>u(t)</th><th>i(t)</th><th>U(t)</th><th>I(t)</th><th>Q(t)</th></tr>
+          <tr class="hl"><td>12–13</td><td>27</td><td>20</td><td>363</td><td>63</td><td>300</td></tr>
+          <tr><td>13–14</td><td>21</td><td>24</td><td>384</td><td>87</td><td>297</td></tr>
+          <tr><td>14–15</td><td>6</td><td>55</td><td>390</td><td>142</td><td>248</td></tr>
+          <tr><td>15–16</td><td>2</td><td>102</td><td>392</td><td>244</td><td>148</td></tr>
+          <tr><td>16–17</td><td>7</td><td>98</td><td>399</td><td>342</td><td>57</td></tr>
+          <tr><td>17–18</td><td>33</td><td>43</td><td>432</td><td>385</td><td>47</td></tr>
+          <tr><td>18–19</td><td>33</td><td>34</td><td>465</td><td>419</td><td>46</td></tr>
+          <tr><td>19–20</td><td>13</td><td>21</td><td>478</td><td>440</td><td>38</td></tr>
+          <tr><td>20–21</td><td>5</td><td>18</td><td>483</td><td>458</td><td>25</td></tr>
+          <tr><td>21–22</td><td>2</td><td>15</td><td>485</td><td>473</td><td>12</td></tr>
+          <tr><td>22–23</td><td>1</td><td>9</td><td>486</td><td>482</td><td>4</td></tr>
+          <tr><td>23–24</td><td>0</td><td>4</td><td>486</td><td>486</td><td>0</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="tbl-caption">
+      Kontrola: &Sigma;u = &Sigma;i = 486 vozila, pa je Q(24) = 0 — sistem se isprazni.
+      Maksimum Q<sub>max</sub> = 300 voz u intervalu 12–13&thinsp;h (ozna&ccaron;eno crveno).
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     7 · Vremenska — dijagram ulaza/izlaza
+     ============================================================ -->
+<section class="slide wide">
+  <div class="slide-inner">
+    <div class="eyebrow">Vremenska akumulacija &middot; dijagram 1</div>
+    <h2>Ulaz u(t) i izlaz i(t)</h2>
+    <svg id="chV1" class="chart"></svg>
+    <div class="chart-note">
+      Jutarnji &scaron;pic ulaza (7–8&thinsp;h, 87 voz) i popodnevni &scaron;pic izlaza (15–16&thinsp;h, 102 voz).
+      Razmak te&zcaron;i&scaron;ta ulaza i izlaza je srednje vreme zadr&zcaron;avanja t<sub>sr</sub> = 5,10&thinsp;h.
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     8 · Vremenska — kumulativni dijagram
+     ============================================================ -->
+<section class="slide wide">
+  <div class="slide-inner">
+    <div class="eyebrow">Vremenska akumulacija &middot; dijagram 2</div>
+    <h2>Kumulativni dijagram U(t) i I(t)</h2>
+    <svg id="chV2" class="chart"></svg>
+    <div class="chart-note">
+      Vertikalno rastojanje izme&dstrok;u krivih je akumulacija Q(t).
+      Najve&cacute;e rastojanje = Q<sub>max</sub> = 363 &minus; 63 = 300 voz (u 13&thinsp;h).
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     9 · Vremenska — dijagram akumulacije
+     ============================================================ -->
+<section class="slide wide">
+  <div class="slide-inner">
+    <div class="eyebrow">Vremenska akumulacija &middot; dijagram 3</div>
+    <h2>Dijagram akumulacije Q(t)</h2>
+    <svg id="chV3" class="chart"></svg>
+    <div class="chart-note">
+      Gara&zcaron;a je najpunija oko podneva. Prose&ccaron;na popunjenost (0–24&thinsp;h) je samo 103 voz —
+      zato se Q<sub>sr</sub> i N ra&ccaron;unaju i za u&zcaron;e intervale.
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     10 · Vremenska — pokazatelji
+     ============================================================ -->
+<section class="slide wide">
+  <div class="slide-inner">
+    <div class="eyebrow">Vremenska akumulacija &middot; pokazatelji</div>
+    <h2>Q<sub>max</sub>, Q<sub>sr</sub> i neravnomernost</h2>
+    <div class="metrics" style="margin-bottom:34px">
+      <div>
+        <div class="metric-label">Maksimalna akumulacija</div>
+        <div class="metric-value">300 <span class="unit">voz</span></div>
+        <div class="metric-sub">interval 12–13 h</div>
+      </div>
+      <div>
+        <div class="metric-label">Ukupna akumulacija Q<sub>u</sub></div>
+        <div class="metric-value">2477 <span class="unit">voz&middot;h</span></div>
+        <div class="metric-sub">&Sigma;Q(t) za 0–24 h</div>
+      </div>
+      <div>
+        <div class="metric-label">Ukupan ulaz / izlaz</div>
+        <div class="metric-value">486 <span class="unit">voz</span></div>
+        <div class="metric-sub">kontrola: U = I</div>
+      </div>
+    </div>
+    <div class="tblwrap">
+      <table class="tbl">
+        <tr><th>Interval</th><th>&Delta;t [h]</th><th>Q<sub>u</sub> [voz&middot;h]</th><th>Q<sub>sr</sub> = Q<sub>u</sub>/&Delta;t [voz]</th><th>N = Q<sub>max</sub>/Q<sub>sr</sub></th></tr>
+        <tr><td>0–24 h</td><td>24</td><td>2477</td><td>103</td><td>2,91</td></tr>
+        <tr><td>6–21 h</td><td>15</td><td>2432</td><td>162</td><td>1,85</td></tr>
+        <tr><td>6–16 h</td><td>10</td><td>2219</td><td>222</td><td>1,35</td></tr>
+      </table>
+    </div>
+    <div class="tbl-caption">
+      &Scaron;to je interval u&zcaron;i oko &scaron;pica, prosek je bli&zcaron;i maksimumu — N pada sa 2,91 na 1,35.
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     11 · Vremenska — tsr i koeficijent izmene
+     ============================================================ -->
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">Vremenska akumulacija &middot; pokazatelji</div>
+    <h2>Vreme zadr&zcaron;avanja i koeficijent izmene</h2>
+    <div class="fstack">
+      <div>
+        <div class="eq">
+          <i>t<sub>sr</sub></i> =
+          <span class="frac"><span>&Sigma;&thinsp;<i>i<sub>tk</sub></i>&middot;<i>t<sub>k</sub></i></span><span>&Sigma;&thinsp;<i>i<sub>tk</sub></i></span></span>
+          &minus;
+          <span class="frac"><span>&Sigma;&thinsp;<i>u<sub>tk</sub></i>&middot;<i>t<sub>k</sub></i></span><span>&Sigma;&thinsp;<i>u<sub>tk</sub></i></span></span>
+          =
+          <span class="frac"><span>7746</span><span>486</span></span>
+          &minus;
+          <span class="frac"><span>5269</span><span>486</span></span>
+          = 15,94 &minus; 10,84 = <span class="res">5,10 h</span>
+        </div>
+        <p class="eq-meaning">
+          Srednje vreme zadr&zcaron;avanja vozila — razlika te&zcaron;i&scaron;ta izlaza i ulaza.
+          t<sub>k</sub> je sredina intervala (0,5; 1,5; &hellip; 23,5).
+        </p>
+      </div>
+      <div>
+        <div class="eq">
+          <i>&gamma;<sub>rt</sub></i> =
+          <span class="frac"><span>&Sigma;&thinsp;<i>u<sub>t</sub></i></span><span><i>Q<sub>max</sub></i></span></span>
+          =
+          <span class="frac"><span>486</span><span>300</span></span>
+          = <span class="res">1,62</span>
+        </div>
+        <p class="eq-meaning">
+          Koeficijent izmene — koliko se puta &laquo;obrne&raquo; jedno parking mesto:
+          486 vozila opslu&zcaron;eno sa najvi&scaron;e 300 istovremeno zauzetih mesta.
+        </p>
+      </div>
+      <div>
+        <div class="eq">
+          vozilo&ndash;&ccaron;asovi = &Sigma;&thinsp;<i>Q(t)</i>&middot;&Delta;<i>t</i> = <span class="res">2477 voz&middot;h</span>
+        </div>
+        <p class="eq-meaning">Ukupan rad sistema — osnova za naplatu i ekonomsku analizu.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     12 · Vremenska — interpretacija
+     ============================================================ -->
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">Vremenska akumulacija &middot; zaklju&ccaron;ak</div>
+    <h2>&Scaron;ta nam brojke govore</h2>
+    <ul class="next-list">
+      <li>Q<sub>max</sub> = 300 dimenzioni&scaron;e gara&zcaron;u
+        <div class="note">Kapacitet mora pokriti vr&scaron;nu akumulaciju, ne prose&ccaron;nu.</div>
+      </li>
+      <li>N pokazuje (ne)iskori&scaron;&cacute;enost
+        <div class="note">N = 2,91 za ceo dan: objekat je ve&cacute;i deo dana poluprazan — pitanje za tarifnu politiku.</div>
+      </li>
+      <li>&gamma;<sub>rt</sub> = 1,62 je obrt mesta
+        <div class="note">Ve&cacute;i koeficijent izmene = vi&scaron;e korisnika po mestu = bolja komercijalna efikasnost.</div>
+      </li>
+      <li>t<sub>sr</sub> = 5,10 h opisuje korisnike
+        <div class="note">Dugotrajna parkiranja (zaposleni) &mdash; kratka izmena bila bi tipi&ccaron;na za kupce.</div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================================
+     13 · Divider — Deo 2
+     ============================================================ -->
+<section class="slide invert">
+  <div class="slide-inner">
+    <div class="eyebrow">Deo 2</div>
+    <h1>Prostorna akumulacija</h1>
+    <p class="subtitle">
+      Linija javnog prevoza sa 12 stanica. Umesto vremena, osa je put x [m]:
+      putnici ulaze i izlaze po stanicama, a Q(x) je broj putnika u vozilu
+      na svakom me&dstrok;ustani&ccaron;nom intervalu. Ra&ccaron;una se za oba smera.
+    </p>
+  </div>
+</section>
+
+<!-- ============================================================
+     14 · Prostorna — princip
+     ============================================================ -->
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">Prostorna akumulacija &middot; postupak</div>
+    <h2>Isti princip, druga osa</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="tag">Identi&ccaron;no</div>
+        <p style="font-size:15px">
+          U(x) i I(x) su kumulativni zbirovi ulazaka i izlazaka po stanicama, a
+          <b>Q(x) = U(x) &minus; I(x)</b> va&zcaron;i na me&dstrok;ustani&ccaron;nom
+          intervalu posle stanice. Q<sub>max</sub>, Q<sub>sr</sub> i N ra&ccaron;unaju se isto.
+        </p>
+      </div>
+      <div class="card accent">
+        <div class="tag">Novo</div>
+        <p style="font-size:15px">
+          Umesto t<sub>sr</sub> ra&ccaron;una se <b>srednja du&zcaron;ina putovanja d<sub>sr</sub></b>
+          (sa x<sub>i</sub> = sredinom intervala), umesto vozilo-&ccaron;asova
+          <b>putnik-kilometri</b> = &Sigma;Q(x)&middot;&Delta;x, a koeficijent izmene je
+          &gamma;<sub>rx</sub> = &Sigma;u / Q<sub>max</sub>.
+        </p>
+      </div>
+    </div>
+    <div class="fstack" style="margin-top:30px">
+      <div class="eq">
+        <i>d<sub>sr</sub></i> = <i>d<sub>i</sub></i> &minus; <i>d<sub>u</sub></i> =
+        <span class="frac"><span>&Sigma;&thinsp;<i>i<sub>xk</sub></i>&middot;<i>x<sub>k</sub></i></span><span>&Sigma;&thinsp;<i>i<sub>xk</sub></i></span></span>
+        &minus;
+        <span class="frac"><span>&Sigma;&thinsp;<i>u<sub>xk</sub></i>&middot;<i>x<sub>k</sub></i></span><span>&Sigma;&thinsp;<i>u<sub>xk</sub></i></span></span>
+      </div>
+      <p class="eq-meaning">
+        n = 11 me&dstrok;ustani&ccaron;nih intervala za 12 stanica — Q<sub>sr</sub> = Q<sub>u</sub>/n.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     15 · Prostorna — tabela smer 1→12
+     ============================================================ -->
+<section class="slide wide">
+  <div class="slide-inner">
+    <div class="eyebrow">Prostorna akumulacija &middot; smer 1 &rarr; 12</div>
+    <h2>Tabela po stanicama</h2>
+    <div class="tblwrap">
+      <table class="tbl">
+        <tr><th>Stanica</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th></tr>
+        <tr><td>u — ulaz</td><td>130</td><td>240</td><td>318</td><td>287</td><td>188</td><td>114</td><td>73</td><td>47</td><td>31</td><td>26</td><td>10</td><td>0</td></tr>
+        <tr><td>i — izlaz</td><td>0</td><td>10</td><td>26</td><td>52</td><td>78</td><td>135</td><td>198</td><td>261</td><td>288</td><td>208</td><td>156</td><td>52</td></tr>
+        <tr><td>U(x)</td><td>130</td><td>370</td><td>688</td><td>975</td><td>1163</td><td>1277</td><td>1350</td><td>1397</td><td>1428</td><td>1454</td><td>1464</td><td>1464</td></tr>
+        <tr><td>I(x)</td><td>0</td><td>10</td><td>36</td><td>88</td><td>166</td><td>301</td><td>499</td><td>760</td><td>1048</td><td>1256</td><td>1412</td><td>1464</td></tr>
+        <tr><td>Q(x)</td><td>130</td><td>360</td><td>652</td><td>887</td><td class="hl">997</td><td>976</td><td>851</td><td>637</td><td>380</td><td>198</td><td>52</td><td>0</td></tr>
+        <tr><td>x<sub>i</sub> [m]</td><td>185</td><td>630</td><td>1130</td><td>1680</td><td>2205</td><td>2720</td><td>3210</td><td>3635</td><td>4180</td><td>4685</td><td>5170</td><td>/</td></tr>
+      </table>
+    </div>
+    <div class="tbl-caption">
+      Kontrola: &Sigma;u = &Sigma;i = 1464 putnika. Q(x) va&zcaron;i na intervalu
+      <em>posle</em> stanice; x<sub>i</sub> je sredina tog intervala.
+      U materijalu (PDF) su u(x) i i(x) prikazani kao kumulativne vrednosti —
+      ovde su radi jasno&cacute;e razdvojeni mala slova (po stanici) i velika (kumulativ).
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     16 · Prostorna — dijagram ulaza/izlaza
+     ============================================================ -->
+<section class="slide wide">
+  <div class="slide-inner">
+    <div class="eyebrow">Prostorna akumulacija &middot; smer 1 &rarr; 12 &middot; dijagram 1</div>
+    <h2>Ulaz u(x) i izlaz i(x) po stanicama</h2>
+    <svg id="chP1" class="chart"></svg>
+    <div class="chart-note">
+      Stepenasti dijagram — vrednost va&zcaron;i na celom me&dstrok;ustani&ccaron;nom intervalu.
+      Razmak te&zcaron;i&scaron;ta: d<sub>sr</sub> = 3573 &minus; 1673 = 1900 m &asymp; 1,90 km.
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     17 · Prostorna — kumulativni dijagram
+     ============================================================ -->
+<section class="slide wide">
+  <div class="slide-inner">
+    <div class="eyebrow">Prostorna akumulacija &middot; smer 1 &rarr; 12 &middot; dijagram 2</div>
+    <h2>Kumulativni dijagram U(x) i I(x)</h2>
+    <svg id="chP2" class="chart"></svg>
+    <div class="chart-note">
+      Najve&cacute;e vertikalno rastojanje: Q<sub>max</sub> = 1163 &minus; 166 = 997 putnika,
+      na intervalu izme&dstrok;u stanica 5 i 6.
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     18 · Prostorna — dijagram akumulacije
+     ============================================================ -->
+<section class="slide wide">
+  <div class="slide-inner">
+    <div class="eyebrow">Prostorna akumulacija &middot; smer 1 &rarr; 12 &middot; dijagram 3</div>
+    <h2>Dijagram prostorne akumulacije Q(x)</h2>
+    <svg id="chP3" class="chart"></svg>
+    <div class="chart-note">
+      Merodavna deonica za dimenzionisanje je ona sa Q<sub>max</sub> —
+      tu vozilo mora da primi 997 putnika (po &ccaron;asu brojanja).
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     19 · Prostorna — pokazatelji smer 1→12
+     ============================================================ -->
+<section class="slide wide">
+  <div class="slide-inner">
+    <div class="eyebrow">Prostorna akumulacija &middot; smer 1 &rarr; 12 &middot; pokazatelji</div>
+    <h2>Rezultati prora&ccaron;una</h2>
+    <div class="metrics">
+      <div>
+        <div class="metric-label">Q<sub>max</sub></div>
+        <div class="metric-value">997 <span class="unit">put</span></div>
+        <div class="metric-sub">izme&dstrok;u stanica 5 i 6</div>
+      </div>
+      <div>
+        <div class="metric-label">Q<sub>u</sub> = &Sigma;Q(x)</div>
+        <div class="metric-value">6120 <span class="unit">put</span></div>
+        <div class="metric-sub">po n = 11 intervala</div>
+      </div>
+      <div>
+        <div class="metric-label">Q<sub>sr</sub> = Q<sub>u</sub>/n</div>
+        <div class="metric-value">557 <span class="unit">put</span></div>
+        <div class="metric-sub">N = 997/557 = 1,79</div>
+      </div>
+      <div>
+        <div class="metric-label">Srednja du&zcaron;ina putovanja</div>
+        <div class="metric-value">1,90 <span class="unit">km</span></div>
+        <div class="metric-sub">d<sub>sr</sub> = 3573,35 &minus; 1673,25 m</div>
+      </div>
+      <div>
+        <div class="metric-label">Putnik-kilometri</div>
+        <div class="metric-value">3079 <span class="unit">put&middot;km</span></div>
+        <div class="metric-sub">&Sigma;Q(x)&middot;&Delta;x</div>
+      </div>
+      <div>
+        <div class="metric-label">Koeficijent izmene</div>
+        <div class="metric-value">1,47</div>
+        <div class="metric-sub">&gamma;<sub>rx</sub> = 1464/997</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     20 · Prostorna — smer 12→1 i poređenje
+     ============================================================ -->
+<section class="slide wide">
+  <div class="slide-inner">
+    <div class="eyebrow">Prostorna akumulacija &middot; smer 12 &rarr; 1</div>
+    <h2>Drugi smer — isti postupak, druga slika</h2>
+    <div class="tblwrap" style="margin-bottom:22px">
+      <table class="tbl">
+        <tr><th>Stanica</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th></tr>
+        <tr><td>U(x)</td><td>120</td><td>370</td><td>693</td><td>985</td><td>1240</td><td>1417</td><td>1511</td><td>1563</td><td>1599</td><td>1619</td><td>1629</td><td>1629</td></tr>
+        <tr><td>I(x)</td><td>0</td><td>20</td><td>51</td><td>98</td><td>160</td><td>290</td><td>525</td><td>775</td><td>1086</td><td>1368</td><td>1556</td><td>1629</td></tr>
+        <tr><td>Q(x)</td><td>120</td><td>350</td><td>642</td><td>887</td><td>1080</td><td class="hl">1127</td><td>986</td><td>788</td><td>513</td><td>251</td><td>73</td><td>0</td></tr>
+      </table>
+    </div>
+    <div class="tblwrap">
+      <table class="tbl">
+        <tr><th>Pokazatelj</th><th>Smer 1 &rarr; 12</th><th>Smer 12 &rarr; 1</th></tr>
+        <tr><td>Q<sub>max</sub> [put]</td><td>997</td><td class="hl">1127</td></tr>
+        <tr><td>Q<sub>u</sub> [put]</td><td>6120</td><td>6817</td></tr>
+        <tr><td>Q<sub>sr</sub> [put]</td><td>557</td><td>620</td></tr>
+        <tr><td>N</td><td>1,79</td><td>1,82</td></tr>
+        <tr><td>d<sub>sr</sub> [km]</td><td>1,90</td><td>1,78</td></tr>
+        <tr><td>putnik-km</td><td>3079</td><td>3424</td></tr>
+        <tr><td>&gamma;<sub>rx</sub></td><td>1,47</td><td>1,45</td></tr>
+      </table>
+    </div>
+    <div class="tbl-caption">
+      Merodavan je smer 12 &rarr; 1: Q<sub>max</sub> = 1127 putnika odre&dstrok;uje
+      potreban kapacitet linije (broj i veli&ccaron;inu vozila).
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     21 · Prostorna — interpretacija
+     ============================================================ -->
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">Prostorna akumulacija &middot; zaklju&ccaron;ak</div>
+    <h2>&Scaron;ta nam brojke govore</h2>
+    <ul class="next-list">
+      <li>Q<sub>max</sub> odre&dstrok;uje kapacitet linije
+        <div class="note">Broj vozila i interval sleđenja dimenzioni&scaron;u se prema najoptere&cacute;enijoj deonici merodavnog smera.</div>
+      </li>
+      <li>Profil Q(x) otkriva strukturu linije
+        <div class="note">Rast do sredine, pad ka kraju — klasi&ccaron;na radijalna linija ka centru grada.</div>
+      </li>
+      <li>d<sub>sr</sub> &asymp; 1,9 km od ukupno 5,5 km trase
+        <div class="note">Putnici koriste oko tre&cacute;ine linije — mesta se izmene &gamma; &asymp; 1,5 puta.</div>
+      </li>
+      <li>Putnik-kilometri mere transportni rad
+        <div class="note">Osnova za pore&dstrok;enje varijanti linija i ekonomsku ocenu.</div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================================
+     22 · Samostalni rad — zadatak
+     ============================================================ -->
+<section class="slide invert wide">
+  <div class="slide-inner">
+    <div class="eyebrow">Drugi &ccaron;as &middot; samostalni rad</div>
+    <h2>Postavka 1 — va&scaron; zadatak</h2>
+    <div class="cards" style="gap:18px">
+      <div class="task-card" style="margin-bottom:0">
+        <h3>Zadatak 1 — vremenska</h3>
+        <ul>
+          <li>kolone U(t), I(t), Q(t)</li>
+          <li>Q<sub>max</sub>, Q<sub>u</sub>, Q<sub>sr</sub> i N za 0–24, 6–21 i 6–16 h</li>
+          <li>t<sub>sr</sub>, vozilo-&ccaron;asovi, &gamma;<sub>rt</sub></li>
+          <li>sva tri dijagrama</li>
+        </ul>
+      </div>
+      <div class="task-card" style="margin-bottom:0">
+        <h3>Zadatak 2 — prostorna</h3>
+        <ul>
+          <li>oba smera kretanja</li>
+          <li>Q(x), Q<sub>max</sub>, Q<sub>u</sub>, Q<sub>sr</sub>, N</li>
+          <li>d<sub>sr</sub>, putnik-km, &gamma;<sub>rx</sub></li>
+          <li>sva tri dijagrama po smeru</li>
+        </ul>
+      </div>
+    </div>
+    <div class="chips">
+      <span class="chip lean">Postavka-1_Vremenska-akumulacija.xlsx</span>
+      <span class="chip lean">Postavka-1_Prostorna-akumulacija.xlsx</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     23 · Samostalni rad — koraci
+     ============================================================ -->
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">Samostalni rad &middot; redosled</div>
+    <h2>Preporu&ccaron;eni koraci u Excel-u</h2>
+    <ul class="next-list">
+      <li>Kumulativi: U = SUM od po&ccaron;etka do tog reda, isto za I.
+        <div class="note">Kontrola: poslednji U i I moraju biti jednaki.</div>
+      </li>
+      <li>Akumulacija: Q = U &minus; I, pa MAX(Q) za Q<sub>max</sub>.
+        <div class="note">Kontrola: prvi i poslednji Q = 0.</div>
+      </li>
+      <li>Pokazatelji: Q<sub>u</sub> = SUM(Q), Q<sub>sr</sub>, N = Q<sub>max</sub>/Q<sub>sr</sub>.</li>
+      <li>Te&zcaron;i&scaron;ta: pomo&cacute;ne kolone u&middot;t<sub>k</sub> i i&middot;t<sub>k</sub> (odnosno u&middot;x<sub>i</sub>, i&middot;x<sub>i</sub>) za t<sub>sr</sub> / d<sub>sr</sub>.</li>
+      <li>Dijagrami: ulaz/izlaz, kumulativni i Q — uporedite oblik sa primerom iz ove ve&zcaron;be.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================================
+     24 · Kraj
+     ============================================================ -->
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">Rezime</div>
+    <h2>&Scaron;ta nosite sa ovog &ccaron;asa</h2>
+    <ul class="next-list">
+      <li>Q = U &minus; I — jedna formula, dve primene (gara&zcaron;a i linija).</li>
+      <li>Q<sub>max</sub> dimenzioni&scaron;e sistem; N meri neravnomernost; &gamma; meri izmenu.</li>
+      <li>Te&zcaron;i&scaron;ta ulaza i izlaza daju t<sub>sr</sub> odnosno d<sub>sr</sub>.</li>
+    </ul>
+    <div class="footnote">
+      Ova prezentacija ostaje dostupna na repozitorijumu kao referenca za izradu zadatka.<br>
+      Slede&cacute;a ve&zcaron;ba: videti spisak na po&ccaron;etnoj strani.
+    </div>
+  </div>
+</section>
+
+<div id="counter">1 / 24</div>
+
+<script>
+/* ====================================================================
+   Crtanje dijagrama (SVG) — zajednički helper za sve vežbe
+   ==================================================================== */
+(function () {
+  const NS = 'http://www.w3.org/2000/svg';
+  function E(tag, attrs, parent) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  /* o = {x0,x1,y0,y1, xt:[], yt:[], xl,yl, series:[], ann:[], legend:[], lx,ly} */
+  window.drawChart = function (id, o) {
+    const svg = document.getElementById(id);
+    if (!svg) return;
+    const W = o.w || 900, H = o.h || 400, L = o.ml || 62, R = 16, T = 18, B = 48;
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    const sx = v => L + (v - o.x0) / (o.x1 - o.x0) * (W - L - R);
+    const sy = v => H - B - (v - o.y0) / (o.y1 - o.y0) * (H - T - B);
+
+    (o.yt || []).forEach(v => {
+      E('line', { x1: L, y1: sy(v), x2: W - R, y2: sy(v), stroke: '#E9E6DC', 'stroke-width': 1 }, svg);
+      E('text', { x: L - 9, y: sy(v) + 4, 'text-anchor': 'end', class: 'tick' }, svg).textContent = v;
+    });
+    (o.xt || []).forEach(v => {
+      E('line', { x1: sx(v), y1: H - B, x2: sx(v), y2: H - B + 5, stroke: '#87867F' }, svg);
+      E('text', { x: sx(v), y: H - B + 20, 'text-anchor': 'middle', class: 'tick' }, svg).textContent = v;
+    });
+    E('line', { x1: L, y1: H - B, x2: W - R, y2: H - B, stroke: '#141413', 'stroke-width': 1.2 }, svg);
+    E('line', { x1: L, y1: T, x2: L, y2: H - B, stroke: '#141413', 'stroke-width': 1.2 }, svg);
+    if (o.xl) E('text', { x: (L + W - R) / 2, y: H - 8, 'text-anchor': 'middle', class: 'axlbl' }, svg).textContent = o.xl;
+    if (o.yl) {
+      const ym = (T + H - B) / 2;
+      E('text', { x: 15, y: ym, 'text-anchor': 'middle', class: 'axlbl', transform: 'rotate(-90 15 ' + ym + ')' }, svg).textContent = o.yl;
+    }
+
+    (o.series || []).forEach(s => {
+      let d = '';
+      if (s.step) { /* s.edges: n+1 granica, s.vals: n vrednosti */
+        d = 'M' + sx(s.edges[0]) + ' ' + sy(s.vals[0]);
+        for (let k = 0; k < s.vals.length; k++) {
+          d += ' H' + sx(s.edges[k + 1]);
+          if (k < s.vals.length - 1) d += ' V' + sy(s.vals[k + 1]);
+        }
+      } else {
+        d = s.x.map((xv, k) => (k ? 'L' : 'M') + sx(xv) + ' ' + sy(s.y[k])).join(' ');
+      }
+      E('path', {
+        d: d, fill: 'none', stroke: s.c,
+        'stroke-width': s.w || 2.6, 'stroke-linejoin': 'round', 'stroke-linecap': 'round',
+        'stroke-dasharray': s.dash || 'none'
+      }, svg);
+    });
+
+    (o.ann || []).forEach(a => {
+      if (a.t === 'h') E('line', { x1: L, y1: sy(a.y), x2: W - R, y2: sy(a.y), stroke: a.c || '#788C5D', 'stroke-width': 1.7, 'stroke-dasharray': '7 5' }, svg);
+      if (a.t === 'v') E('line', { x1: sx(a.x), y1: sy(a.y0), x2: sx(a.x), y2: sy(a.y1), stroke: a.c || '#C04B4B', 'stroke-width': 1.4, 'stroke-dasharray': '5 4' }, svg);
+      if (a.t === 'arrow') {
+        const ln = E('line', { x1: sx(a.x0), y1: sy(a.y0), x2: sx(a.x1), y2: sy(a.y1), stroke: a.c || '#C04B4B', 'stroke-width': 1.8 }, svg);
+        ln.setAttribute('marker-end', 'url(#arr)');
+        if (a.both) ln.setAttribute('marker-start', 'url(#arr)');
+      }
+      if (a.t === 'txt') {
+        E('text', { x: sx(a.x) + (a.dx || 0), y: sy(a.y) + (a.dy || 0), class: 'ann', 'text-anchor': a.anchor || 'middle', fill: a.c || '#C04B4B' }, svg).textContent = a.s;
+      }
+    });
+
+    if (o.legend) {
+      const lx = o.lx != null ? o.lx : W - R - 175, ly = o.ly != null ? o.ly : T + 10;
+      o.legend.forEach((g, k) => {
+        E('line', { x1: lx, y1: ly + k * 21, x2: lx + 26, y2: ly + k * 21, stroke: g.c, 'stroke-width': 3.2 }, svg);
+        E('text', { x: lx + 34, y: ly + k * 21 + 4, class: 'tick', 'text-anchor': 'start', fill: '#3D3D3A' }, svg).textContent = g.s;
+      });
+    }
+  };
+})();
+
+/* ====================================================================
+   Podaci — Vežba 1
+   ==================================================================== */
+(function () {
+  const ULAZ = '#3E6B9E', IZLAZ = '#D9962E', CLAY = '#D97757', OLIVE = '#788C5D', RED = '#C04B4B';
+  const cum = a => a.reduce((r, v) => (r.push((r.length ? r[r.length - 1] : 0) + v), r), []);
+
+  /* --- vremenska: 24 časovna intervala --- */
+  const ut = [0,2,1,1,3,17,59,87,40,45,46,35,27,21,6,2,7,33,33,13,5,2,1,0];
+  const it = [0,1,0,1,1,1,3,5,3,6,10,12,20,24,55,102,98,43,34,21,18,15,9,4];
+  const Ut = cum(ut), It = cum(it);
+  const Qt = Ut.map((v, k) => v - It[k]);
+  const tx = [0]; for (let k = 1; k <= 24; k++) tx.push(k);
+
+  drawChart('chV1', {
+    x0: 0, x1: 24, y0: 0, y1: 115,
+    xt: [0,2,4,6,8,10,12,14,16,18,20,22,24], yt: [0,20,40,60,80,100],
+    xl: 't [h]', yl: 'u(t), i(t) [voz]',
+    series: [
+      { x: tx, y: [0].concat(ut), c: ULAZ },
+      { x: tx, y: [0].concat(it), c: IZLAZ }
+    ],
+    ann: [
+      { t: 'v', x: 10.84, y0: 0, y1: 96 },
+      { t: 'v', x: 15.94, y0: 0, y1: 96 },
+      { t: 'arrow', x0: 10.84, y0: 90, x1: 15.94, y1: 90, both: true },
+      { t: 'txt', x: 13.4, y: 90, dy: -9, s: 'tsr = 5,10 h' },
+      { t: 'txt', x: 8, y: 87, dy: -10, s: '87', c: ULAZ },
+      { t: 'txt', x: 16, y: 102, dy: -10, s: '102', c: IZLAZ }
+    ],
+    legend: [{ c: ULAZ, s: 'ulaz u(t)' }, { c: IZLAZ, s: 'izlaz i(t)' }],
+    lx: 80
+  });
+
+  drawChart('chV2', {
+    x0: 0, x1: 24, y0: 0, y1: 520,
+    xt: [0,2,4,6,8,10,12,14,16,18,20,22,24], yt: [0,100,200,300,400,500],
+    xl: 't [h]', yl: 'U(t), I(t) [voz]',
+    series: [
+      { x: tx, y: [0].concat(Ut), c: ULAZ },
+      { x: tx, y: [0].concat(It), c: IZLAZ }
+    ],
+    ann: [
+      { t: 'arrow', x0: 13, y0: 63, x1: 13, y1: 363, both: true },
+      { t: 'txt', x: 13, y: 215, dx: 12, s: 'Qmax = 300 voz', anchor: 'start' }
+    ],
+    legend: [{ c: ULAZ, s: 'ukupan ulaz U(t)' }, { c: IZLAZ, s: 'ukupan izlaz I(t)' }],
+    lx: 80
+  });
+
+  drawChart('chV3', {
+    x0: 0, x1: 24, y0: 0, y1: 350,
+    xt: [0,2,4,6,8,10,12,14,16,18,20,22,24], yt: [0,50,100,150,200,250,300,350],
+    xl: 't [h]', yl: 'Q(t) [voz]',
+    series: [{ x: tx, y: [0].concat(Qt), c: CLAY, w: 3 }],
+    ann: [
+      { t: 'h', y: 103, c: OLIVE },
+      { t: 'txt', x: 21.5, y: 103, dy: -8, s: 'Qsr (0-24) = 103', c: OLIVE },
+      { t: 'arrow', x0: 13, y0: 0, x1: 13, y1: 300, both: true },
+      { t: 'txt', x: 13, y: 318, s: 'Qmax = 300 voz' }
+    ]
+  });
+
+  /* --- prostorna, smer 1→12: 12 stanica --- */
+  const st = [0, 370, 890, 1370, 1990, 2420, 3020, 3400, 3870, 4490, 4880, 5460]; /* stacionaže stanica */
+  const ux = [130,240,318,287,188,114,73,47,31,26,10,0];
+  const ix = [0,10,26,52,78,135,198,261,288,208,156,52];
+  const Ux = cum(ux), Ix = cum(ix);
+  const Qx = Ux.map((v, k) => v - Ix[k]);
+
+  drawChart('chP1', {
+    x0: 0, x1: 5600, y0: 0, y1: 350,
+    xt: [0,800,1600,2400,3200,4000,4800,5600], yt: [0,50,100,150,200,250,300,350],
+    xl: 'x [m]', yl: 'u(x), i(x) [put]',
+    series: [
+      { step: true, edges: st, vals: ux.slice(0, 11), c: ULAZ },
+      { step: true, edges: st, vals: ix.slice(1, 12), c: IZLAZ }
+    ],
+    ann: [
+      { t: 'v', x: 1673, y0: 0, y1: 305 },
+      { t: 'v', x: 3573, y0: 0, y1: 305 },
+      { t: 'arrow', x0: 1673, y0: 298, x1: 3573, y1: 298, both: true },
+      { t: 'txt', x: 2623, y: 298, dy: -9, s: 'dsr = 1900 m' }
+    ],
+    legend: [{ c: ULAZ, s: 'ulaz u(x)' }, { c: IZLAZ, s: 'izlaz i(x)' }],
+    lx: 690, ly: 40
+  });
+
+  drawChart('chP2', {
+    x0: 0, x1: 5600, y0: 0, y1: 1600,
+    xt: [0,800,1600,2400,3200,4000,4800,5600], yt: [0,200,400,600,800,1000,1200,1400,1600],
+    xl: 'x [m]', yl: 'U(x), I(x) [put]',
+    series: [
+      { step: true, edges: st, vals: Ux.slice(0, 11), c: ULAZ },
+      { step: true, edges: st, vals: Ix.slice(0, 11), c: IZLAZ }
+    ],
+    ann: [
+      { t: 'arrow', x0: 2205, y0: 166, x1: 2205, y1: 1163, both: true },
+      { t: 'txt', x: 2205, y: 660, dx: 12, s: 'Qmax = 997 put', anchor: 'start' }
+    ],
+    legend: [{ c: ULAZ, s: 'ukupan ulaz U(x)' }, { c: IZLAZ, s: 'ukupan izlaz I(x)' }],
+    lx: 80
+  });
+
+  drawChart('chP3', {
+    x0: 0, x1: 5600, y0: 0, y1: 1200,
+    xt: [0,800,1600,2400,3200,4000,4800,5600], yt: [0,200,400,600,800,1000,1200],
+    xl: 'x [m]', yl: 'Q(x) [put]',
+    series: [{ step: true, edges: st, vals: Qx.slice(0, 11), c: CLAY, w: 3 }],
+    ann: [
+      { t: 'h', y: 557, c: OLIVE },
+      { t: 'txt', x: 4900, y: 557, dy: -8, s: 'Qsr = 557', c: OLIVE },
+      { t: 'arrow', x0: 2205, y0: 0, x1: 2205, y1: 997, both: true },
+      { t: 'txt', x: 2205, y: 1050, s: 'Qmax = 997 put' }
+    ]
+  });
+})();
+
+/* ====================================================================
+   Navigacija slajdovima
+   ==================================================================== */
+(function () {
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const counter = document.getElementById('counter');
+  let current = 0;
+
+  function go(i) {
+    current = Math.max(0, Math.min(slides.length - 1, i));
+    slides[current].scrollIntoView({ behavior: 'smooth' });
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (['ArrowRight', 'ArrowDown', ' ', 'PageDown'].includes(e.key)) { e.preventDefault(); go(current + 1); }
+    if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); go(current - 1); }
+    if (e.key === 'Home') { e.preventDefault(); go(0); }
+    if (e.key === 'End')  { e.preventDefault(); go(slides.length - 1); }
+  });
+
+  const obs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) {
+        current = slides.indexOf(en.target);
+        counter.textContent = (current + 1) + ' / ' + slides.length;
+      }
+    });
+  }, { threshold: 0.6 });
+  slides.forEach(s => obs.observe(s));
+})();
+</script>
+</body>
+</html>
