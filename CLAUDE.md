@@ -107,6 +107,9 @@ Sledeće na redu: vežba 02 „Analiza vremenske serije i prognoza saobraćaja" 
 
 ## Razno
 
+- **Praktikum (LaTeX, štampani zadaci):** poseban PRIVATNI repo
+  `D:\My Drive\Nastava\PPS2\PPS2-praktikum\` (github.com/nprikolic/PPS2-praktikum)
+  — namerno odvojen od ovog javnog repoa da postavke ne bi bile dostupne online.
 - Lokalni pregled: launch config `pps2-vezbe` (python http.server, port 8741) u
   `C:\Users\A5U5\Documents\.claude\launch.json`
 - Repo je na Google Drive-u — ako git prijavi lock greške, pauzirati Drive sync
