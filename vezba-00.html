@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PPS2 · Uvodni čas — Organizacija nastave</title>
+<style>
+  :root {
+    --ivory:   #FAF9F5;
+    --slate:   #141413;
+    --clay:    #D97757;
+    --oat:     #E3DACC;
+    --olive:   #788C5D;
+    --gray-150:#F0EEE6;
+    --gray-300:#D1CFC5;
+    --gray-500:#87867F;
+    --gray-700:#3D3D3A;
+    --red:     #C04B4B;
+    --serif: ui-serif, Georgia, "Times New Roman", serif;
+    --sans:  system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono:  ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans); background: var(--ivory); color: var(--slate);
+    -webkit-font-smoothing: antialiased; scroll-snap-type: y mandatory; overflow-x: hidden;
+  }
+
+  .slide {
+    width: 100vw; min-height: 100vh;
+    scroll-snap-align: start; scroll-snap-stop: always;
+    display: flex; align-items: center; justify-content: center;
+    padding: 7vh 5vw;
+  }
+  .slide-inner { width: 100%; max-width: 800px; }
+  .slide.invert { background: var(--slate); color: var(--ivory); }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--gray-500); margin-bottom: 24px;
+  }
+  .invert .eyebrow { color: var(--gray-300); }
+  h1 { font-family: var(--serif); font-weight: 500; font-size: clamp(38px, 5.5vw, 60px); line-height: 1.08; letter-spacing: -0.01em; margin-bottom: 20px; }
+  h2 { font-family: var(--serif); font-weight: 500; font-size: clamp(26px, 3.6vw, 38px); line-height: 1.15; margin-bottom: 30px; }
+  .subtitle { font-size: 17px; line-height: 1.6; color: var(--gray-700); max-width: 560px; }
+  .invert .subtitle { color: var(--gray-300); }
+  .byline { margin-top: 48px; font-family: var(--mono); font-size: 12px; color: var(--gray-500); display: flex; gap: 24px; flex-wrap: wrap; }
+  .ornament { display: block; margin: 0 0 36px 0; }
+
+  .next-list { list-style: none; display: flex; flex-direction: column; gap: 20px; }
+  .next-list li { font-family: var(--serif); font-size: 21px; line-height: 1.45; padding-left: 36px; position: relative; }
+  .next-list li::before { content: ""; position: absolute; left: 0; top: 0.55em; width: 18px; height: 1.5px; background: var(--clay); }
+  .next-list .note { font-family: var(--sans); font-size: 14px; color: var(--gray-700); margin-top: 4px; }
+  .footnote { margin-top: 44px; font-family: var(--mono); font-size: 11px; color: var(--gray-500); line-height: 1.6; }
+
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .card { border: 1px solid var(--gray-300); border-radius: 14px; padding: 24px 26px; background: #fff; }
+  .card .tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-500); margin-bottom: 12px; }
+  .card h3 { font-family: var(--serif); font-size: 21px; font-weight: 500; margin-bottom: 10px; }
+  .card p { font-size: 14px; line-height: 1.6; color: var(--gray-700); }
+  .card.accent { border-color: var(--clay); background: rgba(217, 119, 87, 0.05); }
+
+  .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px 40px; }
+  .metric-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-500); margin-bottom: 10px; }
+  .metric-value { font-family: var(--serif); font-size: 42px; font-weight: 500; line-height: 1; }
+  .metric-value .unit { font-size: 19px; color: var(--gray-700); }
+  .metric-sub { font-family: var(--mono); font-size: 12px; color: var(--gray-500); margin-top: 8px; }
+
+  .tblwrap { overflow-x: auto; }
+  table.tbl { border-collapse: collapse; font-family: var(--mono); font-size: 13px; width: 100%; }
+  .tbl th, .tbl td { padding: 7px 10px; text-align: center; border-bottom: 1px solid var(--gray-150); white-space: nowrap; }
+  .tbl th { background: var(--gray-150); font-weight: 600; font-size: 12px; }
+  .tbl td:first-child, .tbl th:first-child { text-align: left; }
+  .tbl-caption { font-family: var(--mono); font-size: 11px; color: var(--gray-500); margin-top: 12px; line-height: 1.6; }
+
+  /* placeholder — upisati stvarne vrednosti, pa obrisati klasu */
+  .todo {
+    font-family: var(--mono); font-size: 0.8em;
+    color: var(--red); background: rgba(192, 75, 75, 0.10);
+    border-radius: 6px; padding: 2px 8px; white-space: nowrap;
+  }
+
+  .qr-box { background: #fff; padding: 10px; border-radius: 10px; border: 1px solid var(--gray-300); line-height: 0; color: var(--slate); width: fit-content; }
+  .qr-box svg { width: 120px; height: 120px; display: block; }
+  .qr-cap { font-family: var(--mono); font-size: 10px; color: var(--gray-500); text-align: center; line-height: 1.5; }
+  .qr-corner { position: absolute; top: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .qr-row { display: flex; align-items: center; gap: 24px; margin-top: 44px; flex-wrap: wrap; }
+  .qr-row .qr-box svg { width: 150px; height: 150px; }
+  @media (max-width: 860px) { .qr-corner { display: none; } }
+
+  #counter { position: fixed; bottom: 20px; right: 26px; font-family: var(--mono); font-size: 12px; color: var(--gray-500); user-select: none; z-index: 10; }
+  .home { position: fixed; top: 18px; left: 24px; font-family: var(--mono); font-size: 12px; color: var(--gray-500); text-decoration: none; z-index: 10; }
+  .home:hover { color: var(--clay); }
+
+  @media (max-width: 720px) {
+    .cards { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .slide { padding: 6vh 5vw; }
+  }
+  @media print {
+    body { scroll-snap-type: none; }
+    .slide { min-height: 96vh; page-break-after: always; }
+    #counter, .home { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<a class="home" href="index.html">&larr; Sve ve&zcaron;be</a>
+
+<!-- svg defs: QR kod -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- QR kod: https://nprikolic.github.io/PPS2-vezbe-html/ (33x33, ECC M) -->
+    <path id="qrcode" fill="currentColor" d="M0 0h1v1h-1zM1 0h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM4 0h1v1h-1zM5 0h1v1h-1zM6 0h1v1h-1zM9 0h1v1h-1zM11 0h1v1h-1zM15 0h1v1h-1zM18 0h1v1h-1zM22 0h1v1h-1zM26 0h1v1h-1zM27 0h1v1h-1zM28 0h1v1h-1zM29 0h1v1h-1zM30 0h1v1h-1zM31 0h1v1h-1zM32 0h1v1h-1zM0 1h1v1h-1zM6 1h1v1h-1zM8 1h1v1h-1zM9 1h1v1h-1zM11 1h1v1h-1zM12 1h1v1h-1zM13 1h1v1h-1zM14 1h1v1h-1zM17 1h1v1h-1zM21 1h1v1h-1zM22 1h1v1h-1zM26 1h1v1h-1zM32 1h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM6 2h1v1h-1zM8 2h1v1h-1zM9 2h1v1h-1zM11 2h1v1h-1zM12 2h1v1h-1zM13 2h1v1h-1zM15 2h1v1h-1zM17 2h1v1h-1zM18 2h1v1h-1zM20 2h1v1h-1zM23 2h1v1h-1zM24 2h1v1h-1zM26 2h1v1h-1zM28 2h1v1h-1zM29 2h1v1h-1zM30 2h1v1h-1zM32 2h1v1h-1zM0 3h1v1h-1zM2 3h1v1h-1zM3 3h1v1h-1zM4 3h1v1h-1zM6 3h1v1h-1zM8 3h1v1h-1zM11 3h1v1h-1zM12 3h1v1h-1zM23 3h1v1h-1zM24 3h1v1h-1zM26 3h1v1h-1zM28 3h1v1h-1zM29 3h1v1h-1zM30 3h1v1h-1zM32 3h1v1h-1zM0 4h1v1h-1zM2 4h1v1h-1zM3 4h1v1h-1zM4 4h1v1h-1zM6 4h1v1h-1zM15 4h1v1h-1zM17 4h1v1h-1zM18 4h1v1h-1zM24 4h1v1h-1zM26 4h1v1h-1zM28 4h1v1h-1zM29 4h1v1h-1zM30 4h1v1h-1zM32 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM10 5h1v1h-1zM12 5h1v1h-1zM16 5h1v1h-1zM18 5h1v1h-1zM20 5h1v1h-1zM21 5h1v1h-1zM22 5h1v1h-1zM26 5h1v1h-1zM32 5h1v1h-1zM0 6h1v1h-1zM1 6h1v1h-1zM2 6h1v1h-1zM3 6h1v1h-1zM4 6h1v1h-1zM5 6h1v1h-1zM6 6h1v1h-1zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h1v1h-1zM24 6h1v1h-1zM26 6h1v1h-1zM27 6h1v1h-1zM28 6h1v1h-1zM29 6h1v1h-1zM30 6h1v1h-1zM31 6h1v1h-1zM32 6h1v1h-1zM8 7h1v1h-1zM11 7h1v1h-1zM12 7h1v1h-1zM18 7h1v1h-1zM22 7h1v1h-1zM23 7h1v1h-1zM0 8h1v1h-1zM6 8h1v1h-1zM8 8h1v1h-1zM10 8h1v1h-1zM14 8h1v1h-1zM15 8h1v1h-1zM16 8h1v1h-1zM17 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM23 8h1v1h-1zM24 8h1v1h-1zM25 8h1v1h-1zM26 8h1v1h-1zM29 8h1v1h-1zM30 8h1v1h-1zM31 8h1v1h-1zM0 9h1v1h-1zM2 9h1v1h-1zM4 9h1v1h-1zM5 9h1v1h-1zM8 9h1v1h-1zM11 9h1v1h-1zM12 9h1v1h-1zM19 9h1v1h-1zM22 9h1v1h-1zM23 9h1v1h-1zM28 9h1v1h-1zM29 9h1v1h-1zM30 9h1v1h-1zM31 9h1v1h-1zM0 10h1v1h-1zM3 10h1v1h-1zM6 10h1v1h-1zM7 10h1v1h-1zM9 10h1v1h-1zM11 10h1v1h-1zM15 10h1v1h-1zM16 10h1v1h-1zM18 10h1v1h-1zM20 10h1v1h-1zM21 10h1v1h-1zM25 10h1v1h-1zM26 10h1v1h-1zM28 10h1v1h-1zM30 10h1v1h-1zM31 10h1v1h-1zM1 11h1v1h-1zM4 11h1v1h-1zM8 11h1v1h-1zM10 11h1v1h-1zM11 11h1v1h-1zM14 11h1v1h-1zM15 11h1v1h-1zM16 11h1v1h-1zM22 11h1v1h-1zM24 11h1v1h-1zM25 11h1v1h-1zM27 11h1v1h-1zM28 11h1v1h-1zM29 11h1v1h-1zM30 11h1v1h-1zM31 11h1v1h-1zM0 12h1v1h-1zM1 12h1v1h-1zM2 12h1v1h-1zM4 12h1v1h-1zM5 12h1v1h-1zM6 12h1v1h-1zM7 12h1v1h-1zM9 12h1v1h-1zM12 12h1v1h-1zM13 12h1v1h-1zM14 12h1v1h-1zM16 12h1v1h-1zM17 12h1v1h-1zM18 12h1v1h-1zM20 12h1v1h-1zM21 12h1v1h-1zM22 12h1v1h-1zM24 12h1v1h-1zM26 12h1v1h-1zM27 12h1v1h-1zM0 13h1v1h-1zM1 13h1v1h-1zM3 13h1v1h-1zM4 13h1v1h-1zM5 13h1v1h-1zM8 13h1v1h-1zM11 13h1v1h-1zM14 13h1v1h-1zM16 13h1v1h-1zM20 13h1v1h-1zM21 13h1v1h-1zM22 13h1v1h-1zM23 13h1v1h-1zM24 13h1v1h-1zM26 13h1v1h-1zM29 13h1v1h-1zM30 13h1v1h-1zM31 13h1v1h-1zM32 13h1v1h-1zM2 14h1v1h-1zM3 14h1v1h-1zM4 14h1v1h-1zM6 14h1v1h-1zM8 14h1v1h-1zM9 14h1v1h-1zM12 14h1v1h-1zM14 14h1v1h-1zM19 14h1v1h-1zM21 14h1v1h-1zM22 14h1v1h-1zM24 14h1v1h-1zM25 14h1v1h-1zM26 14h1v1h-1zM31 14h1v1h-1zM0 15h1v1h-1zM2 15h1v1h-1zM7 15h1v1h-1zM8 15h1v1h-1zM10 15h1v1h-1zM12 15h1v1h-1zM14 15h1v1h-1zM15 15h1v1h-1zM19 15h1v1h-1zM22 15h1v1h-1zM25 15h1v1h-1zM27 15h1v1h-1zM28 15h1v1h-1zM29 15h1v1h-1zM30 15h1v1h-1zM32 15h1v1h-1zM0 16h1v1h-1zM1 16h1v1h-1zM3 16h1v1h-1zM4 16h1v1h-1zM5 16h1v1h-1zM6 16h1v1h-1zM8 16h1v1h-1zM9 16h1v1h-1zM11 16h1v1h-1zM12 16h1v1h-1zM17 16h1v1h-1zM19 16h1v1h-1zM22 16h1v1h-1zM23 16h1v1h-1zM24 16h1v1h-1zM25 16h1v1h-1zM27 16h1v1h-1zM28 16h1v1h-1zM32 16h1v1h-1zM0 17h1v1h-1zM1 17h1v1h-1zM2 17h1v1h-1zM8 17h1v1h-1zM9 17h1v1h-1zM14 17h1v1h-1zM15 17h1v1h-1zM17 17h1v1h-1zM18 17h1v1h-1zM19 17h1v1h-1zM20 17h1v1h-1zM21 17h1v1h-1zM23 17h1v1h-1zM26 17h1v1h-1zM29 17h1v1h-1zM30 17h1v1h-1zM32 17h1v1h-1zM3 18h1v1h-1zM4 18h1v1h-1zM6 18h1v1h-1zM9 18h1v1h-1zM10 18h1v1h-1zM11 18h1v1h-1zM13 18h1v1h-1zM15 18h1v1h-1zM19 18h1v1h-1zM23 18h1v1h-1zM24 18h1v1h-1zM25 18h1v1h-1zM27 18h1v1h-1zM29 18h1v1h-1zM30 18h1v1h-1zM31 18h1v1h-1zM32 18h1v1h-1zM1 19h1v1h-1zM4 19h1v1h-1zM5 19h1v1h-1zM8 19h1v1h-1zM12 19h1v1h-1zM14 19h1v1h-1zM15 19h1v1h-1zM16 19h1v1h-1zM17 19h1v1h-1zM18 19h1v1h-1zM19 19h1v1h-1zM20 19h1v1h-1zM21 19h1v1h-1zM23 19h1v1h-1zM24 19h1v1h-1zM28 19h1v1h-1zM29 19h1v1h-1zM30 19h1v1h-1zM32 19h1v1h-1zM0 20h1v1h-1zM1 20h1v1h-1zM4 20h1v1h-1zM6 20h1v1h-1zM10 20h1v1h-1zM13 20h1v1h-1zM16 20h1v1h-1zM20 20h1v1h-1zM21 20h1v1h-1zM22 20h1v1h-1zM24 20h1v1h-1zM25 20h1v1h-1zM27 20h1v1h-1zM28 20h1v1h-1zM29 20h1v1h-1zM0 21h1v1h-1zM2 21h1v1h-1zM5 21h1v1h-1zM8 21h1v1h-1zM9 21h1v1h-1zM13 21h1v1h-1zM14 21h1v1h-1zM16 21h1v1h-1zM18 21h1v1h-1zM20 21h1v1h-1zM21 21h1v1h-1zM22 21h1v1h-1zM23 21h1v1h-1zM25 21h1v1h-1zM27 21h1v1h-1zM28 21h1v1h-1zM29 21h1v1h-1zM30 21h1v1h-1zM0 22h1v1h-1zM2 22h1v1h-1zM6 22h1v1h-1zM9 22h1v1h-1zM12 22h1v1h-1zM13 22h1v1h-1zM15 22h1v1h-1zM16 22h1v1h-1zM17 22h1v1h-1zM18 22h1v1h-1zM20 22h1v1h-1zM21 22h1v1h-1zM25 22h1v1h-1zM26 22h1v1h-1zM27 22h1v1h-1zM28 22h1v1h-1zM29 22h1v1h-1zM30 22h1v1h-1zM31 22h1v1h-1zM0 23h1v1h-1zM2 23h1v1h-1zM3 23h1v1h-1zM4 23h1v1h-1zM7 23h1v1h-1zM8 23h1v1h-1zM10 23h1v1h-1zM11 23h1v1h-1zM14 23h1v1h-1zM18 23h1v1h-1zM22 23h1v1h-1zM26 23h1v1h-1zM29 23h1v1h-1zM30 23h1v1h-1zM0 24h1v1h-1zM1 24h1v1h-1zM4 24h1v1h-1zM5 24h1v1h-1zM6 24h1v1h-1zM8 24h1v1h-1zM9 24h1v1h-1zM10 24h1v1h-1zM12 24h1v1h-1zM13 24h1v1h-1zM15 24h1v1h-1zM16 24h1v1h-1zM18 24h1v1h-1zM19 24h1v1h-1zM20 24h1v1h-1zM24 24h1v1h-1zM25 24h1v1h-1zM26 24h1v1h-1zM27 24h1v1h-1zM28 24h1v1h-1zM8 25h1v1h-1zM9 25h1v1h-1zM11 25h1v1h-1zM15 25h1v1h-1zM16 25h1v1h-1zM18 25h1v1h-1zM19 25h1v1h-1zM20 25h1v1h-1zM23 25h1v1h-1zM24 25h1v1h-1zM28 25h1v1h-1zM30 25h1v1h-1zM31 25h1v1h-1zM32 25h1v1h-1zM0 26h1v1h-1zM1 26h1v1h-1zM2 26h1v1h-1zM3 26h1v1h-1zM4 26h1v1h-1zM5 26h1v1h-1zM6 26h1v1h-1zM10 26h1v1h-1zM13 26h1v1h-1zM15 26h1v1h-1zM16 26h1v1h-1zM18 26h1v1h-1zM21 26h1v1h-1zM23 26h1v1h-1zM24 26h1v1h-1zM26 26h1v1h-1zM28 26h1v1h-1zM30 26h1v1h-1zM0 27h1v1h-1zM6 27h1v1h-1zM13 27h1v1h-1zM14 27h1v1h-1zM16 27h1v1h-1zM19 27h1v1h-1zM23 27h1v1h-1zM24 27h1v1h-1zM28 27h1v1h-1zM29 27h1v1h-1zM30 27h1v1h-1zM31 27h1v1h-1zM0 28h1v1h-1zM2 28h1v1h-1zM3 28h1v1h-1zM4 28h1v1h-1zM6 28h1v1h-1zM9 28h1v1h-1zM10 28h1v1h-1zM14 28h1v1h-1zM18 28h1v1h-1zM19 28h1v1h-1zM21 28h1v1h-1zM24 28h1v1h-1zM25 28h1v1h-1zM26 28h1v1h-1zM27 28h1v1h-1zM28 28h1v1h-1zM29 28h1v1h-1zM0 29h1v1h-1zM2 29h1v1h-1zM3 29h1v1h-1zM4 29h1v1h-1zM6 29h1v1h-1zM9 29h1v1h-1zM10 29h1v1h-1zM11 29h1v1h-1zM14 29h1v1h-1zM16 29h1v1h-1zM17 29h1v1h-1zM20 29h1v1h-1zM22 29h1v1h-1zM24 29h1v1h-1zM25 29h1v1h-1zM27 29h1v1h-1zM28 29h1v1h-1zM32 29h1v1h-1zM0 30h1v1h-1zM2 30h1v1h-1zM3 30h1v1h-1zM4 30h1v1h-1zM6 30h1v1h-1zM11 30h1v1h-1zM12 30h1v1h-1zM16 30h1v1h-1zM20 30h1v1h-1zM22 30h1v1h-1zM23 30h1v1h-1zM24 30h1v1h-1zM27 30h1v1h-1zM28 30h1v1h-1zM29 30h1v1h-1zM31 30h1v1h-1zM32 30h1v1h-1zM0 31h1v1h-1zM6 31h1v1h-1zM13 31h1v1h-1zM15 31h1v1h-1zM16 31h1v1h-1zM18 31h1v1h-1zM19 31h1v1h-1zM20 31h1v1h-1zM22 31h1v1h-1zM25 31h1v1h-1zM27 31h1v1h-1zM28 31h1v1h-1zM29 31h1v1h-1zM30 31h1v1h-1zM0 32h1v1h-1zM1 32h1v1h-1zM2 32h1v1h-1zM3 32h1v1h-1zM4 32h1v1h-1zM5 32h1v1h-1zM6 32h1v1h-1zM8 32h1v1h-1zM9 32h1v1h-1zM12 32h1v1h-1zM14 32h1v1h-1zM17 32h1v1h-1zM19 32h1v1h-1zM23 32h1v1h-1zM24 32h1v1h-1zM27 32h1v1h-1zM31 32h1v1h-1z"/>
+  </defs>
+</svg>
+
+<!-- ============================================================
+     1 · Naslov
+     ============================================================ -->
+<section class="slide">
+  <div class="slide-inner" style="position:relative">
+    <div class="qr-corner">
+      <div class="qr-box"><svg viewBox="0 0 33 33"><use href="#qrcode"/></svg></div>
+      <div class="qr-cap">skenirajte —<br>materijali online</div>
+    </div>
+    <svg class="ornament" width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">
+      <circle cx="28" cy="28" r="22" fill="none" stroke="#D1CFC5" stroke-width="1.5"/>
+      <path d="M19 28 H37 M28 19 V37" stroke="#D97757" stroke-width="1.8" stroke-linecap="round"/>
+      <circle cx="28" cy="28" r="3" fill="#141413"/>
+    </svg>
+    <div class="eyebrow">Planiranje prostora i saobra&cacute;aja 2 &middot; Uvodni &ccaron;as</div>
+    <h1>Organizacija nastave — ve&zcaron;be</h1>
+    <p class="subtitle">
+      Kako rade ve&zcaron;be, &scaron;ta se o&ccaron;ekuje od vas, kako se osvajaju
+      bodovi i gde stoje svi materijali.
+    </p>
+    <div class="byline">
+      <span>&scaron;kolska 2025/26 &middot; letnji semestar</span>
+      <span>navigacija: &larr; &rarr; ili skrol</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     2 · Format vežbi
+     ============================================================ -->
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">Format</div>
+    <h2>Kako izgleda jedan termin</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="tag">Prvi &ccaron;as &middot; 45 min</div>
+        <h3>Predavanje sa primerom</h3>
+        <p>
+          Prolazimo kroz kompletan re&scaron;en primer — formule, tabele i dijagrami.
+          Sve &scaron;to vidite na platnu ostaje online kao referenca.
+        </p>
+      </div>
+      <div class="card">
+        <div class="tag">Drugi &ccaron;as &middot; 45 min</div>
+        <h3>Samostalni rad</h3>
+        <p>
+          Dobijate svoju postavku (Excel) i radite zadatak po ugledu na primer.
+          Tu smo za pitanja — ovo je najbolji trenutak da razjasnite nejasno&cacute;e.
+        </p>
+      </div>
+    </div>
+    <div class="footnote">
+      Ukupno <span class="todo">[dopuniti: broj]</span> ve&zcaron;bi u semestru &middot;
+      termin: <span class="todo">[dopuniti: dan, vreme, sala]</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     3 · Prisustvo
+     ============================================================ -->
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">Prisustvo</div>
+    <h2>Da li morate da dolazite?</h2>
+    <ul class="next-list">
+      <li>Prisustvo na ve&zcaron;bama: <span class="todo">[dopuniti: obavezno / neobavezno]</span>
+        <div class="note">Dozvoljen broj izostanaka: <span class="todo">[dopuniti]</span></div>
+      </li>
+      <li>Evidencija: <span class="todo">[dopuniti: na&ccaron;in evidentiranja]</span></li>
+      <li>Nadokna&dstrok;ivanje propu&scaron;tenih ve&zcaron;bi: <span class="todo">[dopuniti: pravilo]</span>
+        <div class="note">Materijali su uvek dostupni online, ali postavke zadataka dobijate na &ccaron;asu.</div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================================
+     4 · Bodovanje
+     ============================================================ -->
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">Bodovanje</div>
+    <h2>Kako se osvajaju bodovi</h2>
+    <div class="tblwrap">
+      <table class="tbl">
+        <tr><th>Aktivnost</th><th>Bodovi</th><th>Napomena</th></tr>
+        <tr><td>Prisustvo / aktivnost</td><td><span class="todo">[XX]</span></td><td><span class="todo">[dopuniti]</span></td></tr>
+        <tr><td>Zadaci sa ve&zcaron;bi (elaborat)</td><td><span class="todo">[XX]</span></td><td><span class="todo">[dopuniti: rok predaje]</span></td></tr>
+        <tr><td>Kolokvijum</td><td><span class="todo">[XX]</span></td><td><span class="todo">[dopuniti: minimum za polaganje]</span></td></tr>
+        <tr><td>Ispit</td><td><span class="todo">[XX]</span></td><td><span class="todo">[dopuniti]</span></td></tr>
+      </table>
+    </div>
+    <div class="tbl-caption">
+      Ukupno predispitne obaveze: <span class="todo">[XX]</span> bodova &middot;
+      uslov za potpis: <span class="todo">[dopuniti]</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     5 · Kolokvijum
+     ============================================================ -->
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">Kolokvijum</div>
+    <h2>&Scaron;ta i kada se pola&zcaron;e</h2>
+    <ul class="next-list">
+      <li>Termin: <span class="todo">[dopuniti: nedelja u semestru / datum]</span></li>
+      <li>Gradivo: <span class="todo">[dopuniti: koje ve&zcaron;be obuhvata]</span></li>
+      <li>Forma: <span class="todo">[dopuniti: ra&ccaron;unski zadaci / teorija / trajanje]</span>
+        <div class="note">Zadaci su istog tipa kao na ve&zcaron;bama — ko redovno radi postavke, spreman je.</div>
+      </li>
+      <li>Popravni: <span class="todo">[dopuniti: da/ne, termin]</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================================
+     6 · Materijali i alati
+     ============================================================ -->
+<section class="slide">
+  <div class="slide-inner">
+    <div class="eyebrow">Materijali</div>
+    <h2>&Scaron;ta vam treba za rad</h2>
+    <div class="cards">
+      <div class="card accent">
+        <div class="tag">Online &middot; uvek dostupno</div>
+        <h3>Prezentacije sa ve&zcaron;bi</h3>
+        <p>
+          Svaka ve&zcaron;ba je jedna HTML prezentacija sa kompletnim primerom —
+          formule, tabele, dijagrami. Otvara se u browseru, radi i na telefonu.
+        </p>
+      </div>
+      <div class="card">
+        <div class="tag">Na &ccaron;asu</div>
+        <h3>Excel postavke</h3>
+        <p>
+          Za svaki zadatak dobijate Excel fajl sa ulaznim podacima.
+          Za rad vam treba ra&ccaron;unar sa Excel-om (ili LibreOffice / Google Sheets).
+        </p>
+      </div>
+    </div>
+    <div class="footnote">
+      Sve prezentacije: nprikolic.github.io/PPS2-vezbe-html
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     7 · Kontakt
+     ============================================================ -->
+<section class="slide invert">
+  <div class="slide-inner">
+    <div class="eyebrow">Kontakt</div>
+    <h2>Pitanja i konsultacije</h2>
+    <ul class="next-list">
+      <li>E-mail: <span class="todo">[dopuniti: slu&zcaron;bena adresa]</span>
+        <div class="note" style="color:var(--gray-300)">U subject upisati: PPS2 — ime, prezime, broj indeksa.</div>
+      </li>
+      <li>Konsultacije: <span class="todo">[dopuniti: termin i kabinet]</span></li>
+      <li>Pitanja o zadacima — najbolje u&zcaron;ivo, na drugom &ccaron;asu ve&zcaron;bi.</li>
+    </ul>
+    <div class="qr-row">
+      <div class="qr-box"><svg viewBox="0 0 33 33"><use href="#qrcode"/></svg></div>
+      <div>
+        <div style="font-family:var(--serif);font-size:19px;margin-bottom:8px">Materijali online</div>
+        <div class="qr-cap" style="text-align:left">
+          skenirajte ili otvorite:<br>
+          <a href="https://nprikolic.github.io/PPS2-vezbe-html/" style="color:var(--clay)">nprikolic.github.io/PPS2-vezbe-html</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="counter">1 / 7</div>
+
+<script>
+(function () {
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const counter = document.getElementById('counter');
+  let current = 0;
+  function go(i) {
+    current = Math.max(0, Math.min(slides.length - 1, i));
+    slides[current].scrollIntoView({ behavior: 'smooth' });
+  }
+  document.addEventListener('keydown', function (e) {
+    if (['ArrowRight', 'ArrowDown', ' ', 'PageDown'].includes(e.key)) { e.preventDefault(); go(current + 1); }
+    if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); go(current - 1); }
+    if (e.key === 'Home') { e.preventDefault(); go(0); }
+    if (e.key === 'End')  { e.preventDefault(); go(slides.length - 1); }
+  });
+  const obs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) {
+        current = slides.indexOf(en.target);
+        counter.textContent = (current + 1) + ' / ' + slides.length;
+      }
+    });
+  }, { threshold: 0.6 });
+  slides.forEach(s => obs.observe(s));
+})();
+</script>
+</body>
+</html>
