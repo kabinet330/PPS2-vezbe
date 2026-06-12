@@ -16,8 +16,13 @@ index.html        — početna strana sa spiskom vežbi (00, 01, …)
 vezba-00.html     — uvodni čas: organizacija nastave (sadrži [dopuniti] placeholdere!)
 vezba-01.html     — Vežba 1: vremenska i prostorna akumulacija
 _template.html    — šablon za nove vežbe; sadrži sve komponente i drawChart()
+program-vezbi.txt — zvaničan program: nazivi svih 10 vežbi, nedelje, časovi, bodovi
 CLAUDE.md         — ovaj fajl
 ```
+
+Nazivi, termini (nedelje) i bodovi svih vežbi su u `program-vezbi.txt` — index
+već ima sve kartice (02–10 kao „uskoro"), a vežba 00 slajd „Program vežbi".
+Elaborat ukupno nosi 40 poena.
 
 Svaki deck je **samostalan HTML fajl** — bez eksternih zavisnosti (CSS/JS/QR inline),
 radi offline. Ne uvoditi CDN biblioteke (MathJax, Chart.js…).

@@ -1,0 +1,13 @@
+Planiranje prostora i saobraćaja 2
+Program vežbanja
+Vežba 1: Vremenska i prostorna akumulacija (2 časa) - 1 nedelja (3 boda)
+Vežba 2: Analiza vremenske serije i prognoza saobraćaja (2 časa) - 2. nedelja (4 boda)
+Vežba 3: Prognoza saobraćaja u uslovima neizvesnosti (2 časa) -  3. nedelja (3 boda)
+Vežba 4: Regresija (2 časa) - 4. nedelja (3 boda)
+Vežba 5: Elastičnost potražnje (2 časa) - 5. nedelja (3 boda)
+Vežba 6: Javni gradski prevoz (2 časa) - 6. nedelja (4 boda)
+Vežba 7: Prognoza nastalih i privučenih putovanja (4 časa) - 7. i 8. nedelja (4 boda)
+Vežba 8: Gradska putna mreža (4 časa) - 9. i 10. nedelja (računarska učionica) (5 bodova)
+Vežba 9: Raspodela putovanja i opterećenja mreže (4 časa) - 11. i 12.  nedelja (računarska učionica) (6 bodova)
+Vežba 10: Algoritmi za preraspodelu saobraćajnih tokova (4 časa) - 13. i 14. nedelja (računarska učionica) (5 bodova)
+Elaborat vredi: 40 poena
