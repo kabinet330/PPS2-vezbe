@@ -5,6 +5,8 @@ Biće ukupno ~10 vežbi; svaka se drži u terminu 2×45 min (prvi čas predavanj
 primerom, drugi čas samostalni rad studenata na odštampanoj Postavci). Studenti
 koriste sajt kao referencu kod kuće.
 
+- **Autor (vežbe):** Nikola Milovanović — nmilovanovic@grf.bg.ac.rs; predmetni
+  nastavnik: Vladan Ilić — vilic@grf.bg.ac.rs
 - **Live sajt:** https://nprikolic.github.io/PPS2-vezbe-html/ (GitHub Pages, auto-deploy sa `main`)
 - **Repo:** https://github.com/nprikolic/PPS2-vezbe-html
 - **Izvorni materijali** (PDF primeri; Excel fajlovi postavki — samo izvor za štampu): `D:\My Drive\Nastava\PPS2\Vežba X\`
@@ -91,6 +93,12 @@ mono eyebrow/anotacije. Tokeni su u `:root` svakog fajla.
 - Kontakt: vežbe nmilovanovic@grf.bg.ac.rs; predmetni nastavnik Vladan Ilić
   (vilic@grf.bg.ac.rs). Termin konsultacija NAMERNO bez datuma („u dogovoru,
   početkom semestra") — ne izmišljati ga.
+
+## Stanje (jun 2026)
+
+Gotove i objavljene: vežba 00 (organizacija — kompletno popunjena) i vežba 01.
+Sledeće na redu: vežba 02 „Analiza vremenske serije i prognoza saobraćaja" —
+čekaju se izvorni materijali u `D:\My Drive\Nastava\PPS2\Vežba 2\`.
 
 ## Otvorena pitanja / TODO
 
