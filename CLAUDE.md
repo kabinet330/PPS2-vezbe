@@ -7,8 +7,8 @@ koriste sajt kao referencu kod kuće.
 
 - **Autor (vežbe):** Nikola Milovanović — nmilovanovic@grf.bg.ac.rs; predmetni
   nastavnik: Vladan Ilić — vilic@grf.bg.ac.rs
-- **Live sajt:** https://nprikolic.github.io/PPS2-vezbe-html/ (GitHub Pages, auto-deploy sa `main`)
-- **Repo:** https://github.com/nprikolic/PPS2-vezbe-html
+- **Live sajt:** https://nprikolic.github.io/PPS2-vezbe/ (GitHub Pages, auto-deploy sa `main`)
+- **Repo:** https://github.com/nprikolic/PPS2-vezbe
 - **Izvorni materijali** (PDF primeri; Excel fajlovi postavki — samo izvor za štampu): `D:\My Drive\Nastava\PPS2\Vežba X\`
 
 **VAŽNO — postavke su na papiru:** studenti dobijaju odštampane postavke i rade
