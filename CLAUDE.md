@@ -78,6 +78,8 @@ mono eyebrow/anotacije. Tokeni su u `:root` svakog fajla.
   ne hardkodovati koordinate. Podržava linijske i stepenaste serije, anotacije
   (`h`/`v`/`arrow`/`txt`) i legendu.
 - Formule: HTML/CSS (`.eq`, `.frac`, `.sum`) — bez MathJax-a
+- **Bez fusnota** — ne koristiti footnote (sitan tekst na dnu slajda; klasa `.footnote`
+  je uklonjena iz svih fajlova i šablona). Informacija ili ide u sadržaj slajda ili se izostavlja.
 - Tabele: `.tbl` u `.tblwrap`; ključni rezultat (npr. Qmax red) označiti klasom `hl`
 - Široki sadržaj (tabele/dijagrami): klasa `wide` na `<section class="slide">`
 - QR kod (vodi na index, isti za sve vežbe): definisan jednom kao `<path id="qrcode">`
